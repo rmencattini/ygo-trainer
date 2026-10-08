@@ -16,7 +16,13 @@ describe("exportCards", () => {
     const out = join(mkdtempSync(join(tmpdir(), "ygo-out-")), "cards");
     mkdirSync(out);
 
-    exportCards({ cdb: join(DATA, "cdb", "cards.cdb"), localeDir, out });
+    exportCards({
+      cdb: join(DATA, "cdb", "cards.cdb"),
+      localeDir,
+      out,
+      stringsConf: join(DATA, "strings.conf"),
+      decksDir: join(DATA, "decks"),
+    });
 
     const en = JSON.parse(readFileSync(join(out, "en.json"), "utf8"));
     expect(en.find((c) => c.code === 89631139)).toMatchObject({
@@ -25,6 +31,20 @@ describe("exportCards", () => {
       level: 8,
     });
     expect(en.length).toBeGreaterThan(10000);
+    // Engine needs the packed setcode (as a string: it can exceed 2^53) and effect strings.
+    expect(en.find((c) => c.code === 89631139).setcode).toBe("221");
+    const ash = en.find((c) => c.code === 14558127);
+    expect(ash.strings[0]).toMatch(/negate/i);
+    expect(en.find((c) => c.code === 89631139).strings).toBeUndefined();
+    expect(
+      JSON.parse(readFileSync(join(out, "strings.json"), "utf8")).system[500],
+    ).toBe("Select the card(s) to Tribute");
+    expect(
+      readFileSync(join(out, "..", "decks", "m1-vanilla.ydk"), "utf8"),
+    ).toContain("#main");
+    expect(
+      JSON.parse(readFileSync(join(out, "..", "decks", "index.json"), "utf8")),
+    ).toContain("m1-vanilla.ydk");
     expect(
       JSON.parse(readFileSync(join(out, "fr.json"), "utf8"))[89631139].name,
     ).toBe("Dragon");
@@ -39,6 +59,8 @@ describe("exportCards", () => {
       cdb: join(DATA, "cdb", "cards.cdb"),
       localeDir: join(out, "nope"),
       out,
+      stringsConf: join(DATA, "strings.conf"),
+      decksDir: join(DATA, "decks"),
     });
     expect(JSON.parse(readFileSync(join(out, "index.json"), "utf8"))).toEqual({
       langs: [],
