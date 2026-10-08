@@ -42,9 +42,23 @@ describe("exportCards", () => {
     expect(
       readFileSync(join(out, "..", "decks", "m1-vanilla.ydk"), "utf8"),
     ).toContain("#main");
+    const decks = JSON.parse(
+      readFileSync(join(out, "..", "decks", "index.json"), "utf8"),
+    );
+    expect(decks).toContainEqual({
+      file: "m1-vanilla.ydk",
+      name: "Vanilla test deck",
+      preset: false,
+    });
+    const presets = decks.filter((d) => d.preset);
+    expect(presets.length).toBeGreaterThanOrEqual(4);
+    expect(presets[0]).toMatchObject({
+      file: expect.stringMatching(/^presets\/.+\.ydk$/),
+      name: expect.any(String),
+    });
     expect(
-      JSON.parse(readFileSync(join(out, "..", "decks", "index.json"), "utf8")),
-    ).toContain("m1-vanilla.ydk");
+      readFileSync(join(out, "..", "decks", presets[0].file), "utf8"),
+    ).toContain("#main");
     expect(
       JSON.parse(readFileSync(join(out, "fr.json"), "utf8"))[89631139].name,
     ).toBe("Dragon");

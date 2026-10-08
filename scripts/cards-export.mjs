@@ -65,13 +65,32 @@ export function exportCards({ cdb, localeDir, out, stringsConf, decksDir }) {
     JSON.stringify(parseStringsConf(readFileSync(stringsConf, "utf8"))),
   );
 
+  // decks/*.ydk are test decks; decks/presets/*.ydk come from npm run decks:refresh.
   const decksOut = join(out, "..", "decks");
-  mkdirSync(decksOut, { recursive: true });
-  const decks = readdirSync(decksDir)
-    .filter((file) => file.endsWith(".ydk"))
-    .sort();
-  for (const deck of decks)
-    copyFileSync(join(decksDir, deck), join(decksOut, deck));
+  mkdirSync(join(decksOut, "presets"), { recursive: true });
+  const ydks = (dir) =>
+    existsSync(dir)
+      ? readdirSync(dir)
+          .filter((file) => file.endsWith(".ydk"))
+          .sort()
+      : [];
+  const decks = [
+    ...ydks(join(decksDir, "presets")).map((file) => ({
+      file: `presets/${file}`,
+      preset: true,
+    })),
+    ...ydks(decksDir).map((file) => ({ file, preset: false })),
+  ].map(({ file, preset }) => {
+    copyFileSync(join(decksDir, file), join(decksOut, file));
+    const name = /^#name (.+)$/m
+      .exec(readFileSync(join(decksDir, file), "utf8"))?.[1]
+      .trim();
+    return {
+      file,
+      name: name ?? file.replace(/^.*\//, "").replace(/\.ydk$/, ""),
+      preset,
+    };
+  });
   writeFileSync(join(decksOut, "index.json"), JSON.stringify(decks));
 
   const langs = [];

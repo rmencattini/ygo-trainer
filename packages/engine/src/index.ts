@@ -34,3 +34,13 @@ export {
 export { parseStringsConf, type SystemStrings } from "./strings";
 export { rowToCardData, type CdbRow } from "./cdb";
 export { parseYdk, type Deck } from "./ydk";
+export {
+  isYgoprodeckDeckUrl,
+  parseYdke,
+  parseYgoprodeckPage,
+  readYdkMeta,
+  toYdk,
+  validateDeck,
+  type DeckMeta,
+  type DeckReport,
+} from "./decks";

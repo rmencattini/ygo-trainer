@@ -1,5 +1,6 @@
 import createCore, {
   OcgDuelMode,
+  ocgLogTypeString,
   OcgLocation,
   OcgProcessResult,
   OcgQueryFlags,
@@ -57,11 +58,14 @@ const BOOT_SCRIPTS = ["constant.lua", "utility.lua"];
 
 export class Duel {
   readonly log: LogEntry[] = [];
+
   private ended = false;
 
   constructor(
     private readonly core: OcgCoreSync,
     private readonly handle: OcgDuelHandle,
+    /** Script and engine errors. Golden tests expect none; the app shows them as warnings. */
+    readonly errors: string[] = [],
   ) {}
 
   /** Runs the engine until a player must answer or the duel ends. */
@@ -156,6 +160,7 @@ export class Engine {
       startingDrawCount: 5,
       drawCountPerTurn: 1,
     };
+    const errors: string[] = [];
     const handle = this.core.createDuel({
       flags: OcgDuelMode.MODE_MR5,
       seed: options.seed,
@@ -163,9 +168,9 @@ export class Engine {
       team2: team,
       cardReader: (code) => this.sources.readCard(code),
       scriptReader: (name) => this.sources.readScript(name),
-      errorHandler: (type, text) => {
-        throw new Error(`ocgcore error ${type}: ${text}`);
-      },
+      // Throwing inside the wasm callback would leave the core in a bad state, so collect instead.
+      errorHandler: (type, text) =>
+        void errors.push(`${ocgLogTypeString.get(type) ?? type}: ${text}`),
     });
     if (!handle) throw new Error("ocgcore could not create the duel");
 
@@ -198,6 +203,6 @@ export class Engine {
     });
 
     this.core.startDuel(handle);
-    return new Duel(this.core, handle);
+    return new Duel(this.core, handle, errors);
   }
 }

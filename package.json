@@ -23,7 +23,8 @@
     "gh": "sh scripts/gh.sh",
     "prepare": "husky",
     "cards:locale": "node scripts/cards-locale.mjs",
-    "cards:export": "node scripts/cards-export.mjs"
+    "cards:export": "node scripts/cards-export.mjs",
+    "decks:refresh": "node scripts/decks-refresh.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs}": [
