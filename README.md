@@ -11,6 +11,7 @@ Status: early development. See [docs/PLAN.md](docs/PLAN.md).
 ## Develop
 
 ```bash
+git submodule update --init
 npm install
 npm run tauri dev
 ```
