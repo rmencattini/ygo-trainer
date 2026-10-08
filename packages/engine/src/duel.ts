@@ -13,6 +13,7 @@ import createCore, {
   type OcgMessageSelectPlace,
   type OcgResponse,
 } from "ocgcore-wasm";
+import { openPlaces } from "./places";
 import { mixSeed, seededShuffle } from "./shuffle";
 import type { Deck } from "./ydk";
 
@@ -99,19 +100,24 @@ export class Duel {
 
   /** Answers SELECT_PLACE with the lowest free zones offered. */
   selectFirstPlace(prompt: OcgMessageSelectPlace): void {
-    const places = [];
-    // field_mask marks blocked zones; bits 0-7 MZONE, 8-15 SZONE, +16 for the opponent.
-    for (let bit = 0; bit < 32 && places.length < prompt.count; bit++) {
-      if (prompt.field_mask & (1 << bit)) continue;
-      const opponent = bit >= 16;
-      const local = bit % 16;
-      places.push({
-        player: opponent ? 1 - prompt.player : prompt.player,
-        location: local < 8 ? OcgLocation.MZONE : OcgLocation.SZONE,
-        sequence: local % 8,
-      });
-    }
-    this.respond({ type: OcgResponseType.SELECT_PLACE, places });
+    this.respond({
+      type: OcgResponseType.SELECT_PLACE,
+      places: openPlaces(prompt).slice(0, prompt.count),
+    });
+  }
+
+  /** Life points of both players. */
+  lp(): [number, number] {
+    // The runtime reply has `lp`; the ocgcore-wasm 0.1.2 typings leave it out.
+    const players = this.core.duelQueryField(this.handle)
+      .players as unknown as { lp: number }[];
+    return [players[0].lp, players[1].lp];
+  }
+
+  /** Cards left in each player's Deck. */
+  deckCounts(): [number, number] {
+    const field = this.core.duelQueryField(this.handle);
+    return [field.players[0].deck_size, field.players[1].deck_size];
   }
 
   /** Cards in one location of one player. Empty zones come back as null. */
