@@ -12,6 +12,8 @@ export default tseslint.config(
       "src-tauri/gen",
       "test-results",
       "playwright-report",
+      "data/scripts",
+      "data/cdb",
     ],
   },
   js.configs.recommended,

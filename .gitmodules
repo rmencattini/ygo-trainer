@@ -1,0 +1,8 @@
+[submodule "data/scripts"]
+	path = data/scripts
+	url = https://github.com/ProjectIgnis/CardScripts.git
+	shallow = true
+[submodule "data/cdb"]
+	path = data/cdb
+	url = https://github.com/ProjectIgnis/BabelCDB.git
+	shallow = true
