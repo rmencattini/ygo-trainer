@@ -11,6 +11,9 @@
       "allow": [
         {
           "url": "https://images.ygoprodeck.com/images/*"
+        },
+        {
+          "url": "https://ygoprodeck.com/deck/*"
         }
       ]
     }

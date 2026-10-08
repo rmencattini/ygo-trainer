@@ -17,6 +17,11 @@ export default defineConfig(() => ({
     port: 1420,
     // YGOProDeck images send no CORS headers; the dev server fetches them for the page.
     proxy: {
+      "/ygo-deck": {
+        target: "https://ygoprodeck.com",
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/ygo-deck/, "/deck"),
+      },
       "/ygo-images": {
         target: "https://images.ygoprodeck.com",
         changeOrigin: true,

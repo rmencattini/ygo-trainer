@@ -1,7 +1,7 @@
 import type { CardCatalog, ImageCache } from "@ygo/cards";
 import { useEffect, useState } from "react";
 import { CardViewer } from "./cards/CardViewer";
-import { TestDuel } from "./duel/TestDuel";
+import { DuelLauncher } from "./duel/DuelLauncher";
 import { createImageCache } from "./cards/imageCache";
 import { fetchCatalog } from "./cards/loadCatalog";
 import "./App.css";
@@ -44,7 +44,7 @@ function App() {
             </button>
           </nav>
           {view === "duel" ? (
-            <TestDuel catalog={cards.catalog} />
+            <DuelLauncher catalog={cards.catalog} />
           ) : (
             <CardViewer catalog={cards.catalog} images={cards.images} />
           )}

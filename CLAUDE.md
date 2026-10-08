@@ -13,6 +13,7 @@ Rules engine: EDOPro `ocgcore` (WASM). Full plan: `docs/PLAN.md`.
 - `npx tauri build --debug --no-bundle` — native build check
 - `cargo test --manifest-path src-tauri/Cargo.toml` — Rust unit tests
 - `npm run cards:locale -- fr` — build `data/locale/fr.json` (card text) from YGOProDeck; gitignored
+- `npm run decks:refresh` — pull recent tournament lists into `data/decks/presets/*.ydk` (review the diff before committing)
 - `npm run cards:export` — write `apps/ui/public/cards/*.json` for the UI (runs before `dev` and `build`)
 
 ## Layout

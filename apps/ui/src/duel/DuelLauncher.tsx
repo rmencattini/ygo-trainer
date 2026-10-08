@@ -1,18 +1,21 @@
 import { passiveResponse } from "@ygo/ai";
 import type { CardCatalog } from "@ygo/cards";
-import { DuelSession, Engine, parseYdk, type TextSource } from "@ygo/engine";
-import { useState } from "react";
+import { DuelSession, Engine, type TextSource } from "@ygo/engine";
+import { useEffect, useState } from "react";
+import {
+  fetchDeckLibrary,
+  importDeck,
+  type DeckEntry,
+} from "../setup/deckLibrary";
+import { DuelSetup, type DuelConfig } from "../setup/DuelSetup";
 import { DuelScreen } from "./DuelScreen";
 import {
   engineSources,
-  fetchDeck,
   fetchScripts,
   fetchStrings,
   scriptNames,
   textSource,
 } from "./loadDuel";
-
-const TEST_DECK = "m1-vanilla.ydk";
 
 /** `?seed=42` replays the same duel; otherwise each duel gets a random seed. */
 function seedFromUrl(): [bigint, bigint, bigint, bigint] {
@@ -27,31 +30,48 @@ function seedFromUrl(): [bigint, bigint, bigint, bigint] {
   return parts as [bigint, bigint, bigint, bigint];
 }
 
-/** M3: you go first with the vanilla test deck against a passive opponent. M4 adds deck choice. */
-export function TestDuel({ catalog }: { catalog: CardCatalog }) {
-  const [state, setState] = useState<{
+const storage = (() => {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null;
+  }
+})();
+
+/** Setup screen, then the duel. The opponent passes every turn until the AI lands (M5). */
+export function DuelLauncher({ catalog }: { catalog: CardCatalog }) {
+  const [library, setLibrary] = useState<DeckEntry[] | null>(null);
+  const [duel, setDuel] = useState<{
     session: DuelSession;
     texts: TextSource;
   } | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
-  const start = async () => {
+  useEffect(() => {
+    fetchDeckLibrary()
+      .then(setLibrary)
+      .catch((e: Error) => setStatus(e.message));
+  }, []);
+
+  const start = async ({ goFirst, mine, theirs }: DuelConfig) => {
     setStatus("Loading the engine…");
     try {
-      const deck = parseYdk(await fetchDeck(TEST_DECK));
       const [strings, scripts] = await Promise.all([
         fetchStrings(),
-        fetchScripts(scriptNames([deck], catalog)),
+        fetchScripts(scriptNames([mine.deck, theirs.deck], catalog)),
       ]);
       const engine = await Engine.create(engineSources(catalog, scripts));
       const texts = textSource(catalog, strings);
+      // decks[0] goes first.
+      const human = goFirst ? 0 : 1;
       const duel = engine.startDuel({
         seed: seedFromUrl(),
-        decks: [deck, deck],
+        decks: goFirst ? [mine.deck, theirs.deck] : [theirs.deck, mine.deck],
       });
-      setState({
+      if (duel.errors.length) console.warn("Engine errors:", duel.errors);
+      setDuel({
         session: new DuelSession(duel, {
-          human: 0,
+          human,
           opponent: passiveResponse,
           texts,
         }),
@@ -63,33 +83,32 @@ export function TestDuel({ catalog }: { catalog: CardCatalog }) {
     }
   };
 
-  if (state) {
+  if (duel) {
     return (
       <div>
-        <button type="button" onClick={() => setState(null)}>
+        <button type="button" onClick={() => setDuel(null)}>
           Leave duel
         </button>
         <DuelScreen
-          session={state.session}
+          session={duel.session}
           catalog={catalog}
-          texts={state.texts}
+          texts={duel.texts}
         />
       </div>
     );
   }
   return (
-    <div className="test-duel">
-      <p>
-        You go first with the vanilla test deck. The opponent passes every turn
-        (real AI comes in M5).
-      </p>
-      <button
-        type="button"
-        onClick={start}
-        disabled={status === "Loading the engine…"}
-      >
-        Start test duel
-      </button>
+    <div>
+      <p>The opponent passes every turn for now; the real AI comes in M5.</p>
+      {library && (
+        <DuelSetup
+          library={library}
+          known={(code) => catalog.get(code) !== null}
+          onStart={start}
+          importer={(input, fileName) => importDeck(input, fileName)}
+          storage={storage}
+        />
+      )}
       {status && <p role="status">{status}</p>}
     </div>
   );
