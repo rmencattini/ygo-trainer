@@ -12,5 +12,9 @@
   },
   "dependencies": {
     "ocgcore-wasm": "^0.1.2"
+  },
+  "devDependencies": {
+    "@ygo/ai": "*",
+    "@ygo/cards": "*"
   }
 }

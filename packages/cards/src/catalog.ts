@@ -16,6 +16,10 @@ export interface BaseCard extends CardText {
   race: number;
   atk: number;
   def: number;
+  /** Packed archetype codes as a decimal string (can exceed 2^53). Present in exported data. */
+  setcode?: string;
+  /** Effect strings str1..str16 from the card DB, without the empty tail. */
+  strings?: string[];
 }
 
 /** Card text for one language, keyed by passcode. */
