@@ -88,7 +88,8 @@ export class DuelSession {
     for (;;) {
       const step = this.duel.next();
       this.digest();
-      if (step.status === "ended") {
+      // The core sends WIN but keeps going; EDOPro's server is what stops the duel.
+      if (step.status === "ended" || this.winner !== null) {
         this.ended = true;
         break;
       }
@@ -134,6 +135,11 @@ export class DuelSession {
         this.hint = message.hint;
       } else if (message.type === OcgMessageType.WIN) {
         this.winner = message.player;
+        this.lines.push(
+          logLine(message, this.options.texts, this.options.human)!,
+        );
+        this.seen = this.duel.log.length;
+        return;
       }
       const line = logLine(
         message,

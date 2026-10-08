@@ -7,6 +7,7 @@ import {
   DuelSession,
   MessageType,
   Phase,
+  SelectBattleCMDAction,
   SelectIdleCMDAction,
   ResponseType,
 } from "../src";
@@ -85,5 +86,57 @@ describe("DuelSession", () => {
     expect(session.board.players[1].hand).toHaveLength(6);
     expect(session.lines).toContain("Opponent's turn");
     expect(session.lines.filter((l) => l === "Your turn")).toHaveLength(2);
+  });
+});
+
+describe("DuelSession: lethal damage", () => {
+  it("ends the duel at 0 LP when an attack deals more than the opponent has left", async () => {
+    const engine = await createNodeEngine({ dataDir: DATA });
+    const duel = engine.startDuel({
+      seed: [1n, 2n, 3n, 4n],
+      decks: [deck, deck],
+      startingLP: 1000,
+    });
+    const session = new DuelSession(duel, {
+      human: 0,
+      opponent: passiveResponse,
+      texts,
+    });
+
+    // Turn 1: summon, end turn. Turn 3: go to battle and attack directly.
+    session.answer({
+      type: ResponseType.SELECT_IDLECMD,
+      action: SelectIdleCMDAction.SELECT_SUMMON,
+      index: 0,
+    });
+    for (let guard = 0; guard < 50 && !session.ended; guard++) {
+      const prompt = session.prompt!;
+      if (prompt.type === MessageType.SELECT_IDLECMD) {
+        session.answer({
+          type: ResponseType.SELECT_IDLECMD,
+          action: prompt.to_bp
+            ? SelectIdleCMDAction.TO_BP
+            : SelectIdleCMDAction.TO_EP,
+          index: null,
+        });
+      } else if (
+        prompt.type === MessageType.SELECT_BATTLECMD &&
+        prompt.attacks.length
+      ) {
+        session.answer({
+          type: ResponseType.SELECT_BATTLECMD,
+          action: SelectBattleCMDAction.SELECT_BATTLE,
+          index: 0,
+        });
+      } else {
+        session.answer(passiveResponse(prompt));
+      }
+    }
+
+    expect(session.ended).toBe(true);
+    expect(session.winner).toBe(0);
+    expect(session.board.players[1].lp).toBe(0);
+    expect(session.lines.filter((l) => l === "You win")).toHaveLength(1);
+    expect(session.prompt).toBeNull();
   });
 });

@@ -106,12 +106,14 @@ export class Duel {
     });
   }
 
-  /** Life points of both players. */
+  /** Life points of both players, never below 0. */
   lp(): [number, number] {
     // The runtime reply has `lp`; the ocgcore-wasm 0.1.2 typings leave it out.
+    // The core keeps LP as a signed 32-bit int but the reply reads it unsigned: -2900 comes back as 4294964396.
     const players = this.core.duelQueryField(this.handle)
       .players as unknown as { lp: number }[];
-    return [players[0].lp, players[1].lp];
+    const lp = (raw: number) => Math.max(0, raw | 0);
+    return [lp(players[0].lp), lp(players[1].lp)];
   }
 
   /** Cards left in each player's Deck. */
