@@ -34,3 +34,6 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - run: npx tauri build --debug --no-bundle
+      - name: Rust unit tests
+        if: runner.os == 'Linux'
+        run: cargo test --manifest-path src-tauri/Cargo.toml
