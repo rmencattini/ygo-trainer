@@ -10,8 +10,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w @ygo/ui",
-    "build": "npm run build -w @ygo/ui",
+    "dev": "npm run cards:export && npm run dev -w @ygo/ui",
+    "build": "npm run cards:export && npm run build -w @ygo/ui",
     "tauri": "tauri",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -22,7 +22,8 @@
     "check:identity": "sh scripts/check-identity.sh",
     "gh": "sh scripts/gh.sh",
     "prepare": "husky",
-    "cards:locale": "node scripts/cards-locale.mjs"
+    "cards:locale": "node scripts/cards-locale.mjs",
+    "cards:export": "node scripts/cards-export.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs}": [
