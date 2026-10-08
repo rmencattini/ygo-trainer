@@ -1,6 +1,6 @@
 import type { CardCatalog, Lang } from "@ygo/cards";
 
-const LANG_NAMES: Record<Lang, string> = {
+export const LANG_NAMES: Record<Lang, string> = {
   en: "English",
   fr: "French",
   de: "German",

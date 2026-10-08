@@ -10,6 +10,7 @@ export {
   ImageCache,
   imageKey,
   imageUrl,
+  YGOPRODECK_IMAGES,
   type ImageSize,
   type ImageStore,
 } from "./images";

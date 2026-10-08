@@ -25,6 +25,12 @@ describe("imageUrl", () => {
 });
 
 describe("ImageCache", () => {
+  it("can download through another base URL, such as the dev server proxy", async () => {
+    const fetch = okFetch();
+    await new ImageCache(memoryStore(), fetch, "/ygo-images").get(3, "small");
+    expect(fetch).toHaveBeenCalledWith("/ygo-images/cards_small/3.jpg");
+  });
+
   it("downloads a missing image once and stores it", async () => {
     const store = memoryStore();
     const fetch = okFetch();
