@@ -32,6 +32,7 @@ test("look up a card and read it in English and French", async ({ page }) => {
   );
 
   await page.goto("/");
+  await page.getByRole("button", { name: "Card viewer" }).click();
   await page.getByLabel("Search cards").fill("blue-eyes white");
   await page
     .getByRole("button", { name: "Blue-Eyes White Dragon", exact: true })

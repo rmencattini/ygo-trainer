@@ -17,10 +17,11 @@ Rules engine: EDOPro `ocgcore` (WASM). Full plan: `docs/PLAN.md`.
 
 ## Layout
 
-- `apps/ui/` — React app (Vite)
+- `apps/ui/` — React app (Vite). `src/duel/`: board, prompts (one component per select message), duel screen.
+  `vite-plugin-scripts.ts` serves `data/scripts` at `/scripts` in dev and copies them into `dist` on build
 - `packages/` — `engine`, `cards` (card lookup, languages, image cache), `ai`, `coach` (pure TS, testable in Node)
 - `data/` — `scripts/` (ProjectIgnis/CardScripts) and `cdb/` (ProjectIgnis/BabelCDB) as shallow submodules;
-  `decks/` holds `.ydk` files
+  `decks/` holds `.ydk` files; `strings.conf` (EDOPro system strings, AGPL)
 - `src-tauri/` — Rust shell: file access and OS secret store only, no game logic
 - `scripts/` — repo guards (identity, commit hours) and their tests
 - `tests/e2e/` — Playwright specs; screenshots land in `tests/e2e/artifacts/`
