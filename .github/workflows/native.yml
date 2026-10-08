@@ -19,6 +19,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
+        with:
+          submodules: true # card DB for npm run cards:export
       - name: Linux system deps
         if: runner.os == 'Linux'
         run: |
@@ -34,3 +36,6 @@ jobs:
           workspaces: src-tauri
       - run: npm ci
       - run: npx tauri build --debug --no-bundle
+      - name: Rust unit tests
+        if: runner.os == 'Linux'
+        run: cargo test --manifest-path src-tauri/Cargo.toml

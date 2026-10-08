@@ -1,0 +1,67 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color-scheme: light dark;
+}
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.card-viewer__controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.card-viewer__controls input {
+  flex: 1;
+  padding: 6px 8px;
+}
+.card-viewer__body {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) 2fr;
+  gap: 16px;
+}
+.card-viewer__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.card-viewer__results button {
+  width: 100%;
+  text-align: left;
+  padding: 4px 6px;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+}
+.card-viewer__results button[aria-pressed="true"],
+.card-viewer__results button:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+.card-viewer__card {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.card-image {
+  width: 220px;
+  aspect-ratio: 421 / 614;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+.card-image--empty {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.card-details__note {
+  font-style: italic;
+  opacity: 0.8;
+}
+@media (max-width: 640px) {
+  .card-viewer__body,
+  .card-viewer__card {
+    display: block;
+  }
+}

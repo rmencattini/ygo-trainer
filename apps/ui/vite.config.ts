@@ -14,6 +14,14 @@ export default defineConfig(() => ({
   // 2. tauri expects a fixed port, fail if that port is not available
   server: {
     port: 1420,
+    // YGOProDeck images send no CORS headers; the dev server fetches them for the page.
+    proxy: {
+      "/ygo-images": {
+        target: "https://images.ygoprodeck.com",
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/ygo-images/, "/images"),
+      },
+    },
     strictPort: true,
     host: host || false,
     hmr: host

@@ -11,11 +11,14 @@ Rules engine: EDOPro `ocgcore` (WASM). Full plan: `docs/PLAN.md`.
 - `npm run lint` / `npm run typecheck` / `npx prettier --check .`
 - `npm run tauri dev` — native app with hot reload
 - `npx tauri build --debug --no-bundle` — native build check
+- `cargo test --manifest-path src-tauri/Cargo.toml` — Rust unit tests
+- `npm run cards:locale -- fr` — build `data/locale/fr.json` (card text) from YGOProDeck; gitignored
+- `npm run cards:export` — write `apps/ui/public/cards/*.json` for the UI (runs before `dev` and `build`)
 
 ## Layout
 
 - `apps/ui/` — React app (Vite)
-- `packages/` — `engine`, `ai`, `coach` (pure TS, testable in Node)
+- `packages/` — `engine`, `cards` (card lookup, languages, image cache), `ai`, `coach` (pure TS, testable in Node)
 - `data/` — `scripts/` (ProjectIgnis/CardScripts) and `cdb/` (ProjectIgnis/BabelCDB) as shallow submodules;
   `decks/` holds `.ydk` files
 - `src-tauri/` — Rust shell: file access and OS secret store only, no game logic
