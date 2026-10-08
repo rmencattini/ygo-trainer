@@ -1,0 +1,2 @@
+sh scripts/check-identity.sh --gh
+npm test

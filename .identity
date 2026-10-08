@@ -1,0 +1,5 @@
+# Expected identity for this repo. Checked by scripts/check-identity.sh,
+# the Husky hooks, the Claude Code hook and CI.
+GITHUB_LOGIN=rmencattini
+COMMIT_EMAIL=48673773+rmencattini@users.noreply.github.com
+REMOTE_URL=git@github.com:rmencattini/ygo-trainer.git
