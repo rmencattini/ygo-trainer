@@ -21,7 +21,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "check:identity": "sh scripts/check-identity.sh",
     "gh": "sh scripts/gh.sh",
-    "prepare": "husky"
+    "prepare": "husky",
+    "cards:locale": "node scripts/cards-locale.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs}": [
