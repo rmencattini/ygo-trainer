@@ -6,3 +6,9 @@
 	path = data/cdb
 	url = https://github.com/ProjectIgnis/BabelCDB.git
 	shallow = true
+[submodule "tools/save-token-jev"]
+	path = tools/save-token-jev
+	url = https://github.com/IAmUnbounded/save-token-jev-clean.git
+[submodule "tools/jev-review"]
+	path = tools/jev-review
+	url = https://github.com/devagrawal09/jev-review.git

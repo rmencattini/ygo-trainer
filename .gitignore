@@ -37,3 +37,10 @@ apps/ui/public/decks
 
 # personal days off for the commit-hours check
 .days-off
+
+# Claude Code session worktrees
+.claude/worktrees/
+
+# Jev tooling: local metrics and supercov runs
+.metrics/
+.supercov/
