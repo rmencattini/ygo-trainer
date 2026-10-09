@@ -10,6 +10,8 @@ export default tseslint.config(
       "**/node_modules",
       "src-tauri/target",
       "src-tauri/gen",
+      "tools/save-token-jev",
+      "tools/jev-review",
       "test-results",
       "playwright-report",
       "data/scripts",

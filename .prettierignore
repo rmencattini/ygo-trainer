@@ -6,3 +6,5 @@ package-lock.json
 LICENSE
 data/scripts
 data/cdb
+tools/save-token-jev
+tools/jev-review
