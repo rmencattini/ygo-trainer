@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "@ygo/engine": "*"
+  },
+  "devDependencies": {
+    "@ygo/cards": "*"
   }
 }

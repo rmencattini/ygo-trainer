@@ -19,8 +19,8 @@ function isEmptyChainWindow(prompt: OcgMessage): boolean {
   );
 }
 
-/** Answers a prompt for a non-human player. */
-export type Responder = (prompt: OcgMessage) => OcgResponse;
+/** Answers a prompt for a non-human player. `duel` gives the log and board so far. */
+export type Responder = (prompt: OcgMessage, duel: Duel) => OcgResponse;
 
 export interface PlayerBoard {
   lp: number;
@@ -106,7 +106,7 @@ export class DuelSession {
         this.duel.respond({ type: OcgResponseType.SELECT_CHAIN, index: null });
         continue;
       }
-      this.duel.respond(this.options.opponent(step.prompt));
+      this.duel.respond(this.options.opponent(step.prompt, this.duel));
     }
     this.board = this.readBoard();
   }

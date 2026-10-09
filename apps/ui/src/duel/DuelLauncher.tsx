@@ -1,4 +1,4 @@
-import { passiveResponse } from "@ygo/ai";
+import { createOpponent } from "@ygo/ai";
 import type { CardCatalog } from "@ygo/cards";
 import type { ImageSource } from "../cards/CardImage";
 import { DuelSession, Engine, type TextSource } from "@ygo/engine";
@@ -79,7 +79,9 @@ export function DuelLauncher({
       setDuel({
         session: new DuelSession(duel, {
           human,
-          opponent: passiveResponse,
+          opponent: createOpponent({
+            alias: (code) => catalog.get(code)?.alias || code,
+          }),
           texts,
         }),
         texts,
