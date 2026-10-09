@@ -1,5 +1,12 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import type { ImageSource } from "../cards/CardImage";
 import type { DeckEntry } from "./deckLibrary";
 import { DuelSetup } from "./DuelSetup";
 
@@ -9,7 +16,8 @@ const library: DeckEntry[] = [
     id: "presets/a.ydk",
     name: "Alpha",
     kind: "preset",
-    deck: { main: full(1), extra: [], side: [] },
+    deck: { main: full(1), extra: [5, 5], side: [6] },
+    source: "https://ygoprodeck.com/deck/alpha-1",
   },
   {
     id: "presets/b.ydk",
@@ -26,11 +34,17 @@ const library: DeckEntry[] = [
 ];
 const known = (code: number) => code < 100;
 
-function setup(importer = vi.fn()) {
+const deck = (group: string, name: string) =>
+  within(screen.getByRole("radiogroup", { name: group })).getByRole("radio", {
+    name,
+  });
+
+function setup(importer = vi.fn(), images?: ImageSource) {
   const onStart = vi.fn();
   render(
     <DuelSetup
       library={library}
+      images={images}
       known={known}
       onStart={onStart}
       importer={importer}
@@ -54,12 +68,8 @@ describe("DuelSetup", () => {
   it("lets you go second and pick both decks", () => {
     const { onStart } = setup();
     fireEvent.click(screen.getByLabelText("I go second"));
-    fireEvent.change(screen.getByLabelText("Your deck"), {
-      target: { value: "presets/b.ydk" },
-    });
-    fireEvent.change(screen.getByLabelText("Opponent's deck"), {
-      target: { value: "test.ydk" },
-    });
+    fireEvent.click(deck("Your deck", "Beta (40)"));
+    fireEvent.click(deck("Opponent's deck", "Test (1)"));
     fireEvent.click(screen.getByRole("button", { name: "Start duel" }));
     expect(onStart).toHaveBeenCalledWith({
       goFirst: false,
@@ -70,9 +80,7 @@ describe("DuelSetup", () => {
 
   it("warns about decks with problems but still lets you start", () => {
     setup();
-    fireEvent.change(screen.getByLabelText("Opponent's deck"), {
-      target: { value: "test.ydk" },
-    });
+    fireEvent.click(deck("Opponent's deck", "Test (1)"));
     expect(
       screen.getByText("Main Deck has 1 cards (needs 40 to 60)"),
     ).toBeInTheDocument();
@@ -89,11 +97,7 @@ describe("DuelSetup", () => {
     fireEvent.change(screen.getByLabelText("Import a .ydk file"), {
       target: { files: [file] },
     });
-    await waitFor(() =>
-      expect(
-        (screen.getByLabelText("Your deck") as HTMLSelectElement).value,
-      ).toMatch(/^imported:/),
-    );
+    await waitFor(() => expect(deck("Your deck", "Mine (40)")).toBeChecked());
     expect(importer).toHaveBeenCalledWith("#main\n4\n", "mine.ydk");
     fireEvent.click(screen.getByRole("button", { name: "Start duel" }));
     expect(onStart.mock.calls[0][0].mine).toMatchObject({
@@ -115,5 +119,39 @@ describe("DuelSetup", () => {
       "No deck list found on that page",
     );
     expect(importer).toHaveBeenCalledWith("https://ygoprodeck.com/deck/x-1");
+  });
+
+  describe("Arena look", () => {
+    it("shows every deck as a tile with its cover card", async () => {
+      URL.createObjectURL = vi.fn(() => "blob:cover");
+      URL.revokeObjectURL = vi.fn();
+      const images = { get: vi.fn(async () => new Uint8Array([1])) };
+      setup(vi.fn(), images);
+      expect(deck("Your deck", "Alpha (40)")).toBeChecked();
+      expect(deck("Opponent's deck", "Beta (40)")).not.toBeChecked();
+      // The cover is the first card of the Main Deck.
+      await waitFor(() => expect(images.get).toHaveBeenCalledWith(2));
+      expect(images.get).toHaveBeenCalledWith(1);
+    });
+
+    it("shows the chosen deck's card counts and list source", () => {
+      setup();
+      const you = screen.getByRole("region", { name: "You" });
+      expect(within(you).getByText("Main 40")).toBeInTheDocument();
+      expect(within(you).getByText("Extra 2")).toBeInTheDocument();
+      expect(within(you).getByText("Side 1")).toBeInTheDocument();
+      expect(
+        within(you).getByRole("link", { name: "List source" }),
+      ).toHaveAttribute("href", "https://ygoprodeck.com/deck/alpha-1");
+    });
+
+    it("keeps the import tools folded until you open them", () => {
+      setup();
+      const details = screen.getByText("Import a deck").closest("details");
+      expect(details).not.toHaveAttribute("open");
+      expect(details).toContainElement(
+        screen.getByLabelText("Import a .ydk file"),
+      );
+    });
   });
 });

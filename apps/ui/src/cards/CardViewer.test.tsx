@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { CardCatalog, type BaseCard } from "@ygo/cards";
 import { describe, expect, it, vi } from "vitest";
 import { CardViewer } from "./CardViewer";
@@ -26,6 +26,15 @@ const cards: BaseCard[] = [
     level: 7,
     atk: 2500,
     def: 2100,
+  },
+  {
+    ...base,
+    code: 55144522,
+    name: "Pot of Greed",
+    type: 0x2,
+    level: 0,
+    atk: 0,
+    def: 0,
   },
 ];
 const catalog = new CardCatalog(cards, {
@@ -115,6 +124,35 @@ describe("CardViewer", () => {
     expect(shown()).toBe(names[0]);
     expect(
       screen.getByRole("button", { name: names[0]!, pressed: true }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows results as a grid of card pictures", async () => {
+    setup();
+    fireEvent.change(screen.getByLabelText("Search cards"), {
+      target: { value: "o" },
+    });
+    // Tile art is decorative (alt=""): the button already carries the name.
+    const tile = screen.getByRole("button", { name: "Pot of Greed" });
+    await waitFor(() =>
+      expect(tile.querySelector("img")).toHaveAttribute("src", "blob:card"),
+    );
+  });
+
+  it("filters the results by kind of card", () => {
+    setup();
+    fireEvent.change(screen.getByLabelText("Search cards"), {
+      target: { value: "o" },
+    });
+    expect(
+      screen.getByRole("button", { name: "Blue-Eyes White Dragon" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("radio", { name: "Spells" }));
+    expect(
+      screen.queryByRole("button", { name: "Blue-Eyes White Dragon" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Pot of Greed" }),
     ).toBeInTheDocument();
   });
 });

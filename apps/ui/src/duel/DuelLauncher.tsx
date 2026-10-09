@@ -113,7 +113,6 @@ export function DuelLauncher({
   }
   return (
     <div>
-      <p>The opponent passes every turn for now; the real AI comes in M5.</p>
       {library && (
         <DuelSetup
           library={library}
@@ -121,6 +120,7 @@ export function DuelLauncher({
           onStart={start}
           importer={(input, fileName) => importDeck(input, fileName)}
           storage={storage}
+          images={images}
         />
       )}
       {status && <p role="status">{status}</p>}
