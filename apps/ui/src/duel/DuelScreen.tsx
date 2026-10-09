@@ -62,13 +62,50 @@ interface Props {
   catalog: CardCatalog;
   texts: TextSource;
   images?: ImageSource;
+  /** Start a new duel with the same decks and turn order. */
+  onRematch?: () => void;
+  /** Go back to the setup screen. */
+  onLeave?: () => void;
 }
 
-export function DuelScreen({ session, catalog, texts, images }: Props) {
+const FLAT_KEY = "ygo.flatBoard";
+
+/** Storage can be blocked (private mode, tests); the board then starts tilted. */
+function loadFlat(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(FLAT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveFlat(flat: boolean) {
+  try {
+    globalThis.localStorage?.setItem(FLAT_KEY, flat ? "1" : "0");
+  } catch {
+    // Not saved; the choice still holds for this duel.
+  }
+}
+
+export function DuelScreen({
+  session,
+  catalog,
+  texts,
+  images,
+  onRematch,
+  onLeave,
+}: Props) {
   const [lang, setLang] = useState<Lang>("en");
   const [, setVersion] = useState(0);
   const [focus, setFocus] = useState<CardRef | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [flat, setFlat] = useState(loadFlat);
+  const [boardShown, setBoardShown] = useState(false);
+  // Clicking the table outside a card folds the prompt; a card or a new prompt opens it.
+  const [foldedFor, setFoldedFor] = useState<Message | null>(null);
+  const folded = foldedFor !== null && foldedFor === session.prompt;
+  const setFolded = (fold: boolean) =>
+    setFoldedFor(fold ? session.prompt : null);
   const logEnd = useRef<HTMLLIElement>(null);
   const readCard = useMemo(
     () => engineSources(catalog, new Map()).readCard,
@@ -97,6 +134,9 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
     name,
     describe: (d) => describeEffect(d, texts),
     hint: session.hint === null ? null : describeEffect(session.hint, texts),
+    images,
+    hover: setHovered,
+    lastEvent: session.lines.at(-1) ?? null,
     focus,
     announceCandidates: (opcodes, query) =>
       catalog
@@ -110,68 +150,127 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
 
   const { board } = session;
   const whose = board.turnPlayer === session.human ? "Your" : "Opponent's";
+  const result =
+    session.winner === session.human
+      ? "You win"
+      : session.winner === null
+        ? "Draw"
+        : "You lose";
 
   return (
     <div className="duel">
-      <div className="duel__main">
-        <div className="duel__status">
-          <p>
-            Turn {board.turn} · {whose} {PHASE_NAMES[board.phase] ?? ""}
-          </p>
-          <select
-            aria-label="Card text language"
-            value={lang}
-            onChange={(e) => setLang(e.target.value as Lang)}
-          >
-            {catalog.languages().map((l) => (
-              <option key={l} value={l}>
-                {LANG_NAMES[l]}
-              </option>
-            ))}
-          </select>
+      <aside className="duel__details" aria-label="Card details">
+        <select
+          aria-label="Card text language"
+          value={lang}
+          onChange={(e) => setLang(e.target.value as Lang)}
+        >
+          {catalog.languages().map((l) => (
+            <option key={l} value={l}>
+              {LANG_NAMES[l]}
+            </option>
+          ))}
+        </select>
+        {hovered ? (
+          <div className="duel__card">
+            {images && (
+              <CardImage code={hovered} name={name(hovered)} images={images} />
+            )}
+            <CardDetails catalog={catalog} code={hovered} lang={lang} />
+          </div>
+        ) : (
+          <p className="duel__hint">Hover a card to read it.</p>
+        )}
+      </aside>
+      <section
+        className="duel__table"
+        aria-label="Duel table"
+        onClick={(e) => {
+          if ((e.target as Element).closest("button, select, .prompt")) return;
+          setFocus(null);
+          setFolded(true);
+        }}
+      >
+        <p className="duel__phase">
+          <span>Turn {board.turn}</span> ·{" "}
+          <span>
+            {whose} {PHASE_NAMES[board.phase] ?? ""}
+          </span>
+        </p>
+        {/* Only the board scrolls, so the corner plates never cover it. */}
+        <div className="duel__board">
+          <Board
+            board={board}
+            tilted={!flat}
+            me={session.human}
+            name={name}
+            images={images}
+            selectable={promptCards(session.prompt)}
+            focus={focus}
+            onFocus={(card) => {
+              setFocus(focus && cardKey(focus) === cardKey(card) ? null : card);
+              setFolded(false);
+            }}
+            onHover={setHovered}
+          />
         </div>
-        <Board
-          board={board}
-          me={session.human}
-          name={name}
-          images={images}
-          selectable={promptCards(session.prompt)}
-          focus={focus}
-          onFocus={(card) =>
-            setFocus(focus && cardKey(focus) === cardKey(card) ? null : card)
-          }
-          onHover={setHovered}
-        />
-      </div>
-      <aside className="duel__side">
+        {session.prompt && (
+          <PromptPanel
+            prompt={session.prompt}
+            ctx={ctx}
+            respond={respond}
+            folded={folded}
+            onUnfold={() => setFolded(false)}
+            onFold={() => setFolded(true)}
+          />
+        )}
+        <button
+          type="button"
+          className="duel__flat"
+          aria-pressed={flat}
+          onClick={() => {
+            setFlat(!flat);
+            saveFlat(!flat);
+          }}
+        >
+          Flat board
+        </button>
+        {session.ended && !boardShown && (
+          <div
+            className="prompt prompt--dialog duel__end"
+            role="dialog"
+            aria-label="Duel over"
+          >
+            <h3>{result}</h3>
+            <p className="prompt__event">
+              Turn {board.turn} · Your LP {board.players[session.human].lp} ·
+              Opponent's LP {board.players[1 - session.human].lp}
+            </p>
+            <div className="prompt__actions">
+              {onRematch && (
+                <button type="button" onClick={onRematch}>
+                  Rematch
+                </button>
+              )}
+              {onLeave && (
+                <button type="button" onClick={onLeave}>
+                  Back to setup
+                </button>
+              )}
+              <button type="button" onClick={() => setBoardShown(true)}>
+                See the board
+              </button>
+            </div>
+          </div>
+        )}
+      </section>
+      <aside className="duel__side" aria-label="Prompts and log">
         {session.ended && (
           <p className="duel__result" role="status">
-            {session.winner === session.human
-              ? "You win"
-              : session.winner === null
-                ? "Draw"
-                : "You lose"}
+            {result}
           </p>
         )}
-        {session.prompt && (
-          <PromptPanel prompt={session.prompt} ctx={ctx} respond={respond} />
-        )}
-        <aside className="duel__details" aria-label="Card details">
-          {hovered ? (
-            <div className="duel__card">
-              {images && (
-                <CardImage
-                  code={hovered}
-                  name={name(hovered)}
-                  images={images}
-                />
-              )}
-              <CardDetails catalog={catalog} code={hovered} lang={lang} />
-            </div>
-          ) : (
-            <p>Hover a card to read it.</p>
-          )}
-        </aside>
+        <h2 className="duel__log-title">Duel log</h2>
         <ol className="duel__log" role="log" aria-label="Duel log">
           {session.lines.map((line, i) => (
             <li

@@ -17,6 +17,15 @@ describe("App", () => {
     expect(screen.getByText("Loading cards…")).toBeInTheDocument();
   });
 
+  it("renders the shell in the Arena theme", () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => new Promise(() => {})),
+    );
+    render(<App />);
+    expect(screen.getByRole("main")).toHaveAttribute("data-theme", "arena");
+  });
+
   it("tells you how to export card data when it is missing", async () => {
     vi.stubGlobal(
       "fetch",

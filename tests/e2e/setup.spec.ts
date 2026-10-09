@@ -18,11 +18,15 @@ test("go second with a tournament preset against the test deck", async ({
   await page.goto("/?seed=3");
   await page.getByLabel("I go second").check();
   await page
-    .getByLabel("Your deck")
-    .selectOption({ label: `Elfnote (${mainSize("presets/elfnote.ydk")})` });
+    .getByRole("radiogroup", { name: "Your deck" })
+    .getByRole("radio", {
+      name: `Elfnote (${mainSize("presets/elfnote.ydk")})`,
+    })
+    .check();
   await page
-    .getByLabel("Opponent's deck")
-    .selectOption({ label: "Vanilla test deck (15)" });
+    .getByRole("radiogroup", { name: "Opponent's deck" })
+    .getByRole("radio", { name: "Vanilla test deck (15)" })
+    .check();
   await page.screenshot({
     path: "tests/e2e/artifacts/setup.png",
     fullPage: true,
@@ -62,10 +66,11 @@ test("import a .ydk file and play with it", async ({ page }) => {
     mimeType: "text/plain",
     buffer: Buffer.from(ydk),
   });
-  await expect(page.getByLabel("Your deck")).toHaveValue(/^imported:/);
   await expect(
-    page.getByLabel("Your deck").locator("option:checked"),
-  ).toHaveText("My import (15)");
+    page
+      .getByRole("radiogroup", { name: "Your deck" })
+      .getByRole("radio", { name: "My import (15)" }),
+  ).toBeChecked();
   await page.getByRole("button", { name: "Start duel" }).click();
   await expect(
     page.getByRole("region", { name: "Your field" }).getByText("Deck 10"),

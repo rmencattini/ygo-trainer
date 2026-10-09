@@ -38,12 +38,19 @@ function board(): BoardState {
   return { players: [me, opp], turn: 1, turnPlayer: 0, phase: 4 };
 }
 
-function setup(selectable: string[] = [], images?: ImageSource) {
+function setup(
+  selectable: string[] = [],
+  images?: ImageSource,
+  opts: { edit?: (b: BoardState) => void; tilted?: boolean } = {},
+) {
   const onFocus = vi.fn();
   const onHover = vi.fn();
+  const state = board();
+  opts.edit?.(state);
   render(
     <Board
-      board={board()}
+      board={state}
+      tilted={opts.tilted}
       images={images}
       me={0}
       name={(code) => NAMES[code]}
@@ -119,7 +126,78 @@ describe("Board", () => {
       "src",
       "blob:art",
     );
-    const asked = images.get.mock.calls.map(([code]) => code).sort();
-    expect(asked).toEqual([1, 2]);
+    // The GY shows its top card too, so Warwolf may be asked twice.
+    const asked = new Set(images.get.mock.calls.map(([code]) => code));
+    expect([...asked].sort()).toEqual([1, 2]);
+  });
+
+  describe("table layout", () => {
+    const column = (el: HTMLElement | null) =>
+      el?.closest<HTMLElement>(".zone, .card, .pile")?.style.gridColumn;
+    const row = (el: HTMLElement | null) =>
+      el?.closest<HTMLElement>(".zone, .card, .pile")?.style.gridRow;
+
+    it("places zones and piles like a real table, mirrored for the opponent", () => {
+      setup();
+      const mine = screen.getByRole("region", { name: "Your field" });
+      const theirs = screen.getByRole("region", { name: "Opponent's field" });
+      // Monster Zone 3 is the middle of five, in columns 2 to 6.
+      expect(
+        column(within(mine).getByRole("button", { name: /^Warwolf, Monster/ })),
+      ).toBe("4");
+      // The opponent's Spell & Trap Zone 1 sits on our right.
+      expect(
+        column(
+          within(theirs).getByRole("button", {
+            name: "Face-down card, Spell & Trap Zone 1",
+          }),
+        ),
+      ).toBe("6");
+      expect(column(within(mine).getByText("Deck 30"))).toBe("7");
+      expect(column(within(theirs).getByText("Deck 30"))).toBe("1");
+      expect(column(within(mine).getByText("GY 0"))).toBe("7");
+      expect(column(within(theirs).getByText("GY 1"))).toBe("1");
+      expect(column(within(mine).getByText("Extra 0"))).toBe("1");
+      expect(column(within(mine).getByText("Banished 0"))).toBe("7");
+      expect(column(within(mine).getByLabelText("Empty Field Zone"))).toBe("1");
+    });
+
+    it("shares one Extra Monster Zone row between both players", () => {
+      setup([], undefined, {
+        // The opponent's right Extra Monster Zone is our left one.
+        edit: (b) => {
+          b.players[1].monsters[6] = { code: 1, position: 1, attack: 2000 };
+        },
+      });
+      const mine = screen.getByRole("region", { name: "Your field" });
+      const theirs = screen.getByRole("region", { name: "Opponent's field" });
+      const taken = within(theirs).getByRole("button", {
+        name: /^Warwolf, Extra Monster Zone right/,
+      });
+      expect(column(taken)).toBe("3");
+      expect(
+        within(mine).queryByLabelText("Empty Extra Monster Zone left"),
+      ).toBeNull();
+      const free = within(mine).getByLabelText(
+        "Empty Extra Monster Zone right",
+      );
+      expect(column(free)).toBe("5");
+      // Both rows meet: the opponent's last row is our first.
+      expect(row(taken)).toBe("3");
+      expect(row(free)).toBe("1");
+    });
+
+    it("tilts the field only when asked", () => {
+      setup([], undefined, { tilted: true });
+      expect(document.querySelector(".board")).toHaveClass("board--tilted");
+    });
+
+    it("keeps both hands outside the field grid", () => {
+      setup();
+      const mine = screen.getByRole("region", { name: "Your field" });
+      const raider = within(mine).getByRole("button", { name: "Raider, hand" });
+      expect(raider.closest(".hand")).not.toBeNull();
+      expect(raider.closest(".field")).toBeNull();
+    });
   });
 });
