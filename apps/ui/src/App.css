@@ -237,7 +237,7 @@ legend {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 64px 140px 72px 16px;
+  padding: 56px 130px 64px 16px;
   overflow: hidden;
 }
 /* Not positioned: the plates and badge anchor to .duel__table, outside this scroll box. */
@@ -248,6 +248,7 @@ legend {
   flex-direction: column;
   justify-content: safe center;
   overflow: auto;
+  container-type: size;
 }
 .duel__phase {
   position: absolute;
@@ -343,70 +344,115 @@ legend {
   font-weight: 800;
   color: var(--gold);
 }
+/* Board: two 7×3 field grids that share the Extra Monster Zone row. */
 .board {
+  /* Cards grow with the space: 9 card heights tall, 7 cards wide. */
+  --cw: clamp(36px, min((100cqh - 150px) / 10.1, (100cqw - 160px) / 7), 84px);
+  --ch: calc(var(--cw) * 1.46);
+  --row: calc(var(--ch) + 10px);
+  --gap: 6px;
+  --octagon: polygon(
+    18% 0,
+    82% 0,
+    100% 12%,
+    100% 88%,
+    82% 100%,
+    18% 100%,
+    0 88%,
+    0 12%
+  );
+  --back: radial-gradient(
+    circle at 50% 50%,
+    #e8b04a 0 10%,
+    #7a2d12 11% 30%,
+    #2b130a 31% 100%
+  );
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  margin: auto;
 }
 .side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.field {
   display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 8px;
-  padding: 6px;
-  border-radius: 6px;
-  background: color-mix(in srgb, currentColor 5%, transparent);
+  grid-template-columns: repeat(7, calc(var(--cw) + 12px));
+  grid-template-rows: repeat(3, var(--row));
+  gap: var(--gap);
+  place-items: center;
+  padding: 10px 18px;
+  border: 6px solid #6d727a;
 }
-.side--theirs .side__rows {
-  flex-direction: column-reverse;
+.field--theirs {
+  padding-bottom: 0;
+  border-bottom: 0;
+  border-radius: 18px 18px 0 0;
+  background:
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgb(255 255 255 / 18%),
+      transparent 60%
+    ),
+    linear-gradient(180deg, #a3a7ac, #969a9f);
 }
-.side__info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.9em;
+/* Our first row lies on top of their last one: the shared EMZ row. */
+.field--mine {
+  margin-top: calc(-1 * var(--row));
+  padding-top: 0;
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background:
+    linear-gradient(0deg, rgb(40 150 255 / 40%), transparent 45%),
+    linear-gradient(180deg, transparent var(--row), #969a9f var(--row), #8b9096);
+  pointer-events: none;
 }
-.side__rows {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.field--mine > * {
+  pointer-events: auto;
 }
-.row {
-  display: flex;
-  gap: 4px;
-  min-height: 66px;
+.board--tilted .field {
+  transform: perspective(1400px) rotateX(22deg);
 }
-.row--emz {
-  padding-left: 56px;
-  gap: 56px;
+/* Both fields turn around the middle of the EMZ row, so they stay one plane. */
+.board--tilted .field--theirs {
+  transform-origin: 50% calc(100% - var(--row) / 2);
 }
-.row--hand {
-  flex-wrap: wrap;
+.board--tilted .field--mine {
+  transform-origin: 50% calc(var(--row) / 2);
 }
 .zone,
-.card {
-  width: 50px;
-  height: 66px;
+.card,
+.pile {
+  width: var(--cw);
+  height: var(--ch);
   flex-shrink: 0;
+  box-sizing: border-box;
   border-radius: 4px;
   font-size: 10px;
 }
 .zone {
-  border: 1px dashed color-mix(in srgb, currentColor 30%, transparent);
+  background: rgb(255 255 255 / 22%);
+  border: 2px solid rgb(255 255 255 / 45%);
+  clip-path: var(--octagon);
 }
 .card {
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: 3px;
   overflow: hidden;
   text-align: left;
-  color: inherit;
-  background: color-mix(in srgb, #c98a2b 25%, transparent);
-  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  color: #fff;
+  background: #3a3f46;
+  border: 1px solid rgb(0 0 0 / 40%);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 50%);
   cursor: default;
-}
-.card {
-  position: relative;
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
 }
 .card__art {
   position: absolute;
@@ -423,36 +469,119 @@ legend {
 .card__art:not(.card__art--empty) ~ .card__name {
   visibility: hidden;
 }
+.card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .card__stats {
   position: relative;
-  align-self: flex-end;
-  padding: 0 2px;
-  border-radius: 2px;
+  align-self: center;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
   color: #fff;
-  background: rgb(0 0 0 / 65%);
+  background: rgb(0 0 0 / 70%);
+}
+.card--back,
+.card--set {
+  background: var(--back);
+  border: 2px solid #5a3a1a;
 }
 .card--back {
-  background: repeating-linear-gradient(
-    45deg,
-    #5a3b1d,
-    #5a3b1d 6px,
-    #6d4824 6px,
-    #6d4824 12px
-  );
   color: transparent;
-}
-.card--set {
-  opacity: 0.7;
 }
 .card--defense {
   transform: rotate(90deg) scale(0.85);
 }
 .card--selectable {
-  outline: 2px solid #2d8cf0;
+  outline: 2px solid var(--glow);
+  box-shadow:
+    0 0 14px var(--glow),
+    0 3px 8px rgb(0 0 0 / 50%);
   cursor: pointer;
 }
 .card--focused {
-  outline: 3px solid #f0a32d;
+  outline: 3px solid var(--gold);
+}
+.pile {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: #3a3f46;
+  box-shadow:
+    2px 2px 0 rgb(0 0 0 / 35%),
+    4px 4px 0 rgb(0 0 0 / 25%);
+}
+.pile--back {
+  background: var(--back);
+  border: 2px solid #5a3a1a;
+}
+.pile--empty {
+  background: rgb(0 0 0 / 12%);
+  border: 2px dashed rgb(255 255 255 / 40%);
+  box-shadow: none;
+}
+.pile__top {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.pile__top--empty {
+  display: none;
+}
+.pile__label {
+  position: relative;
+  margin-bottom: 3px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: #fff;
+  background: rgb(0 0 0 / 72%);
+}
+.hand {
+  display: flex;
+  justify-content: center;
+  min-height: 12px;
+}
+.hand--theirs .card {
+  width: calc(var(--cw) * 0.7);
+  height: calc(var(--ch) * 0.7);
+  margin: 0 -4px 6px;
+}
+.side--mine .hand {
+  order: 2;
+  margin-top: 10px;
+}
+.hand--mine .card {
+  width: calc(var(--cw) * 1.2);
+  height: calc(var(--ch) * 1.2);
+  margin: 0 -3px;
+  transform-origin: 50% 120%;
+  transform: rotate(calc(var(--fan) * 4deg))
+    translateY(calc(var(--fan) * var(--fan) * 3px));
+}
+.hand--mine .card:hover,
+.hand--mine .card--focused {
+  z-index: 2;
+  transform: translateY(-14px) scale(1.06);
+}
+.duel__flat {
+  position: absolute;
+  z-index: 3;
+  right: 16px;
+  bottom: 16px;
+  font-size: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
 }
 .prompt {
   padding: 8px;

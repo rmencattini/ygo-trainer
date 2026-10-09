@@ -64,11 +64,31 @@ interface Props {
   images?: ImageSource;
 }
 
+const FLAT_KEY = "ygo.flatBoard";
+
+/** Storage can be blocked (private mode, tests); the board then starts tilted. */
+function loadFlat(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(FLAT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function saveFlat(flat: boolean) {
+  try {
+    globalThis.localStorage?.setItem(FLAT_KEY, flat ? "1" : "0");
+  } catch {
+    // Not saved; the choice still holds for this duel.
+  }
+}
+
 export function DuelScreen({ session, catalog, texts, images }: Props) {
   const [lang, setLang] = useState<Lang>("en");
   const [, setVersion] = useState(0);
   const [focus, setFocus] = useState<CardRef | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const [flat, setFlat] = useState(loadFlat);
   const logEnd = useRef<HTMLLIElement>(null);
   const readCard = useMemo(
     () => engineSources(catalog, new Map()).readCard,
@@ -147,6 +167,7 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
         <div className="duel__board">
           <Board
             board={board}
+            tilted={!flat}
             me={session.human}
             name={name}
             images={images}
@@ -158,6 +179,17 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
             onHover={setHovered}
           />
         </div>
+        <button
+          type="button"
+          className="duel__flat"
+          aria-pressed={flat}
+          onClick={() => {
+            setFlat(!flat);
+            saveFlat(!flat);
+          }}
+        >
+          Flat board
+        </button>
       </section>
       <aside className="duel__side" aria-label="Prompts and log">
         {session.ended && (

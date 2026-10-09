@@ -173,5 +173,22 @@ describe("DuelScreen", () => {
       const badge = screen.getByText("Turn 1").closest(".duel__phase");
       expect(badge).toHaveTextContent(/^Turn 1 · (Your|Opponent's) \w+/);
     });
+
+    it("switches between a tilted and a flat board, and remembers it", async () => {
+      const stored = new Map<string, string>();
+      vi.stubGlobal("localStorage", {
+        getItem: (k: string) => stored.get(k) ?? null,
+        setItem: (k: string, v: string) => stored.set(k, v),
+      });
+      await setup();
+      const flat = screen.getByRole("button", { name: "Flat board" });
+      expect(flat).toHaveAttribute("aria-pressed", "false");
+      expect(document.querySelector(".board")).toHaveClass("board--tilted");
+      fireEvent.click(flat);
+      expect(flat).toHaveAttribute("aria-pressed", "true");
+      expect(document.querySelector(".board")).not.toHaveClass("board--tilted");
+      expect(stored.get("ygo.flatBoard")).toBe("1");
+      vi.unstubAllGlobals();
+    });
   });
 });
