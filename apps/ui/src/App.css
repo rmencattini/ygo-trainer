@@ -233,7 +233,29 @@ legend {
   color: var(--muted);
 }
 .duel__table {
+  /* Cards grow with the space: 9 card heights tall, 7 cards wide. */
+  --cw: clamp(36px, min((100cqh - 150px) / 10.1, (100cqw - 160px) / 7), 84px);
+  --ch: calc(var(--cw) * 1.46);
+  --row: calc(var(--ch) + 10px);
+  --gap: 6px;
+  --octagon: polygon(
+    18% 0,
+    82% 0,
+    100% 12%,
+    100% 88%,
+    82% 100%,
+    18% 100%,
+    0 88%,
+    0 12%
+  );
+  --back: radial-gradient(
+    circle at 50% 50%,
+    #e8b04a 0 10%,
+    #7a2d12 11% 30%,
+    #2b130a 31% 100%
+  );
   position: relative;
+  container-type: size;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -248,7 +270,6 @@ legend {
   flex-direction: column;
   justify-content: safe center;
   overflow: auto;
-  container-type: size;
 }
 .duel__phase {
   position: absolute;
@@ -346,27 +367,6 @@ legend {
 }
 /* Board: two 7×3 field grids that share the Extra Monster Zone row. */
 .board {
-  /* Cards grow with the space: 9 card heights tall, 7 cards wide. */
-  --cw: clamp(36px, min((100cqh - 150px) / 10.1, (100cqw - 160px) / 7), 84px);
-  --ch: calc(var(--cw) * 1.46);
-  --row: calc(var(--ch) + 10px);
-  --gap: 6px;
-  --octagon: polygon(
-    18% 0,
-    82% 0,
-    100% 12%,
-    100% 88%,
-    82% 100%,
-    18% 100%,
-    0 88%,
-    0 12%
-  );
-  --back: radial-gradient(
-    circle at 50% 50%,
-    #e8b04a 0 10%,
-    #7a2d12 11% 30%,
-    #2b130a 31% 100%
-  );
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -583,14 +583,45 @@ legend {
     transition: none;
   }
 }
+/* Prompts: a box above your hand; card picks open as a dialog. */
 .prompt {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  position: absolute;
+  z-index: 6;
+  left: 50%;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  border: 1px solid var(--gold);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgb(18 22 28 / 97%), rgb(10 12 16 / 97%));
+  box-shadow:
+    0 0 0 1px #000,
+    0 12px 30px rgb(0 0 0 / 60%);
+  overflow-y: auto;
+}
+.prompt--dock {
+  /* Just above the hand, which is 1.2 card heights tall. */
+  bottom: calc(64px + var(--ch) * 1.2 + 24px);
+  width: min(560px, 90%);
+  max-height: 42%;
+  transform: translateX(-50%);
+}
+.prompt--dialog {
+  top: 50%;
+  width: min(760px, 92%);
+  max-height: 84%;
+  transform: translate(-50%, -50%);
+  box-shadow:
+    0 0 0 100vmax rgb(0 0 0 / 45%),
+    0 12px 30px rgb(0 0 0 / 60%);
 }
 .prompt h3 {
-  margin: 0 0 8px;
-  font-size: 1em;
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.prompt__event {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 13px;
 }
 .prompt__actions {
   display: flex;
@@ -599,14 +630,42 @@ legend {
 }
 .prompt__cards {
   list-style: none;
-  padding: 0;
+  padding: 4px 2px 10px;
   margin: 0 0 8px;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 10px;
 }
-.prompt__cards button[aria-pressed="true"] {
-  outline: 2px solid #2d8cf0;
+.pick {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 96px;
+  padding: 4px;
+  text-align: center;
+  transition: transform 0.15s;
+}
+.pick[aria-pressed="true"] {
+  color: var(--ink);
+  background: var(--raised);
+  outline: 3px solid var(--glow);
+  box-shadow: 0 0 14px var(--glow);
+  transform: translateY(-4px);
+}
+.pick__art {
+  display: block;
+  width: 100%;
+  aspect-ratio: 421 / 614;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.pick__art--empty {
+  display: none;
+}
+.pick__name {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
 }
 @media (max-width: 900px) {
   .app--wide:has(.duel-launcher) {

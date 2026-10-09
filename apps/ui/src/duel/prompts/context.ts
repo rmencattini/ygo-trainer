@@ -1,4 +1,5 @@
 import type { Message, OcgOpCode, Response } from "@ygo/engine";
+import type { ImageSource } from "../../cards/CardImage";
 
 export interface CardRef {
   controller: 0 | 1;
@@ -13,6 +14,10 @@ export interface PromptContext {
   describe(description: bigint): string;
   /** Text of the last "select …" hint the engine sent, if any. */
   hint: string | null;
+  /** Card art for card picks; without it they show names only. */
+  images?: ImageSource;
+  /** The latest log line, so a chain question can say what it answers. */
+  lastEvent?: string | null;
   /** Card clicked on the board: prompts show only its choices. */
   focus: CardRef | null;
   /** Cards you may declare for ANNOUNCE_CARD that match `query`. */

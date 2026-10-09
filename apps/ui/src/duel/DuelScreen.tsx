@@ -117,6 +117,8 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
     name,
     describe: (d) => describeEffect(d, texts),
     hint: session.hint === null ? null : describeEffect(session.hint, texts),
+    images,
+    lastEvent: session.lines.at(-1) ?? null,
     focus,
     announceCandidates: (opcodes, query) =>
       catalog
@@ -179,6 +181,9 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
             onHover={setHovered}
           />
         </div>
+        {session.prompt && (
+          <PromptPanel prompt={session.prompt} ctx={ctx} respond={respond} />
+        )}
         <button
           type="button"
           className="duel__flat"
@@ -200,9 +205,6 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
                 ? "Draw"
                 : "You lose"}
           </p>
-        )}
-        {session.prompt && (
-          <PromptPanel prompt={session.prompt} ctx={ctx} respond={respond} />
         )}
         <h2 className="duel__log-title">Duel log</h2>
         <ol className="duel__log" role="log" aria-label="Duel log">

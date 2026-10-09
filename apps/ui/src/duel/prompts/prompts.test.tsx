@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import {
   CardLocation,
   MessageType,
@@ -206,6 +206,20 @@ describe("SELECT_CARD", () => {
     });
   });
 
+  it("shows the cards as pictures in a dialog", async () => {
+    URL.createObjectURL = vi.fn(() => "blob:art");
+    URL.revokeObjectURL = vi.fn();
+    show(prompt, {
+      images: { get: vi.fn(async () => new Uint8Array([1])) },
+    });
+    const dialog = screen.getByRole("dialog", { name: "Select cards" });
+    const warwolf = within(dialog).getByRole("button", { name: "Warwolf" });
+    expect(await within(warwolf).findByRole("img")).toHaveAttribute(
+      "src",
+      "blob:art",
+    );
+  });
+
   it("uses the hint as the title", () => {
     show(prompt, { hint: "Select the card(s) to add to your hand" });
     expect(
@@ -292,6 +306,21 @@ describe("SELECT_CHAIN", () => {
       selects: [{ ...card(3), description: 9n, client_mode: 0 }],
     });
     expect(screen.queryByRole("button", { name: "Don't chain" })).toBeNull();
+  });
+
+  it("says what you would chain to", () => {
+    show(
+      {
+        type: MessageType.SELECT_CHAIN,
+        forced: false,
+        spe_count: 0,
+        selects: [{ ...card(3), description: 9n, client_mode: 0 }],
+      },
+      { lastEvent: "Chain Link 1: Opponent activates Pot of Prosperity" },
+    );
+    expect(
+      screen.getByText("Chain Link 1: Opponent activates Pot of Prosperity"),
+    ).toBeInTheDocument();
   });
 });
 

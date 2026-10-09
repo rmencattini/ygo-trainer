@@ -96,6 +96,17 @@ function body(props: PromptProps<Message>): ReactNode {
   }
 }
 
+/** Prompts where you pick among cards open as a dialog over the table. */
+const PICKS = new Set<number>([
+  MessageType.SELECT_CARD,
+  MessageType.SELECT_TRIBUTE,
+  MessageType.SELECT_UNSELECT_CARD,
+  MessageType.SELECT_SUM,
+  MessageType.SELECT_COUNTER,
+  MessageType.SORT_CARD,
+  MessageType.SORT_CHAIN,
+]);
+
 export function PromptPanel(props: {
   prompt: Message;
   ctx: PromptContext;
@@ -103,9 +114,13 @@ export function PromptPanel(props: {
 }) {
   const title =
     props.ctx.hint ?? TITLES[props.prompt.type as MessageType] ?? "Choose";
-  return (
-    <section className="prompt" aria-label="Prompt">
+  const content = (
+    <>
       <h3>{title}</h3>
+      {props.prompt.type === MessageType.SELECT_CHAIN &&
+        props.ctx.lastEvent && (
+          <p className="prompt__event">{props.ctx.lastEvent}</p>
+        )}
       {/* key: a new prompt starts with fresh picks */}
       <div
         key={JSON.stringify(props.prompt, (_, v) =>
@@ -114,6 +129,18 @@ export function PromptPanel(props: {
       >
         {body(props)}
       </div>
+    </>
+  );
+  if (PICKS.has(props.prompt.type)) {
+    return (
+      <div className="prompt prompt--dialog" role="dialog" aria-label={title}>
+        {content}
+      </div>
+    );
+  }
+  return (
+    <section className="prompt prompt--dock" aria-label="Prompt">
+      {content}
     </section>
   );
 }

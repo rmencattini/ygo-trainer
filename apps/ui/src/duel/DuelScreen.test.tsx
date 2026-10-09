@@ -174,6 +174,14 @@ describe("DuelScreen", () => {
       expect(badge).toHaveTextContent(/^Turn 1 · (Your|Opponent's) \w+/);
     });
 
+    it("puts the prompt on the table, not beside the log", async () => {
+      await setup();
+      const table = screen.getByRole("region", { name: "Duel table" });
+      expect(
+        within(table).getByRole("region", { name: "Prompt" }),
+      ).toBeInTheDocument();
+    });
+
     it("switches between a tilted and a flat board, and remembers it", async () => {
       const stored = new Map<string, string>();
       vi.stubGlobal("localStorage", {

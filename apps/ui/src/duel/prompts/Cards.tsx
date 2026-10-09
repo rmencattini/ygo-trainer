@@ -10,6 +10,7 @@ import {
   type OcgMessageSortChain,
 } from "@ygo/engine";
 import { useState } from "react";
+import { CardImage, type ImageSource } from "../../cards/CardImage";
 import type { PromptProps } from "./context";
 import { whereLabel } from "./labels";
 
@@ -24,6 +25,39 @@ interface Pickable {
   location: number;
 }
 
+/** A card you can pick, drawn with its art when there is some. */
+function CardChoice(props: {
+  code: number;
+  label: string;
+  images?: ImageSource;
+  pressed?: boolean;
+  disabled?: boolean;
+  title?: string;
+  onClick(): void;
+}) {
+  return (
+    <button
+      type="button"
+      className="pick"
+      aria-label={props.label}
+      aria-pressed={props.pressed}
+      disabled={props.disabled}
+      title={props.title}
+      onClick={props.onClick}
+    >
+      {props.images && (
+        <CardImage
+          code={props.code}
+          name={props.label}
+          images={props.images}
+          className="pick__art"
+        />
+      )}
+      <span className="pick__name">{props.label}</span>
+    </button>
+  );
+}
+
 function PickList(props: {
   cards: Pickable[];
   picked: number[];
@@ -31,21 +65,22 @@ function PickList(props: {
   onToggle(i: number): void;
   me: number;
   name(code: number): string;
+  images?: ImageSource;
   locked?: number[];
 }) {
   return (
     <ul className="prompt__cards">
       {props.cards.map((c, i) => (
         <li key={i}>
-          <button
-            type="button"
-            aria-pressed={props.picked.includes(i)}
+          <CardChoice
+            code={c.code}
+            label={props.label ? props.label(i) : props.name(c.code)}
+            images={props.images}
+            pressed={props.picked.includes(i)}
             disabled={props.locked?.includes(i)}
             title={whereLabel(c.controller, c.location, props.me)}
             onClick={() => props.onToggle(i)}
-          >
-            {props.label ? props.label(i) : props.name(c.code)}
-          </button>
+          />
         </li>
       ))}
     </ul>
@@ -97,6 +132,7 @@ export function SelectCardPrompt({
         onToggle={(i) => setPicked(toggle(picked, i))}
         me={ctx.me}
         name={ctx.name}
+        images={ctx.images}
       />
       <ConfirmRow
         ok={ok}
@@ -140,6 +176,7 @@ export function TributePrompt({
         onToggle={(i) => setPicked(toggle(picked, i))}
         me={ctx.me}
         name={ctx.name}
+        images={ctx.images}
       />
       <ConfirmRow
         ok={ok}
@@ -166,31 +203,42 @@ export function UnselectCardPrompt({
   const send = (index: number | null) =>
     respond({ type: ResponseType.SELECT_UNSELECT_CARD, index });
   return (
-    <div className="prompt__actions">
-      {prompt.select_cards.map((c, i) => (
-        <button key={`s${i}`} type="button" onClick={() => send(i)}>
-          Pick {ctx.name(c.code)}
-        </button>
-      ))}
-      {prompt.unselect_cards.map((c, i) => (
-        <button
-          key={`u${i}`}
-          type="button"
-          onClick={() => send(prompt.select_cards.length + i)}
-        >
-          Drop {ctx.name(c.code)}
-        </button>
-      ))}
-      {prompt.can_finish && (
-        <button type="button" onClick={() => send(null)}>
-          Finish
-        </button>
-      )}
-      {prompt.can_cancel && !prompt.can_finish && (
-        <button type="button" onClick={() => send(null)}>
-          Cancel
-        </button>
-      )}
+    <div>
+      <ul className="prompt__cards">
+        {prompt.select_cards.map((c, i) => (
+          <li key={`s${i}`}>
+            <CardChoice
+              code={c.code}
+              label={`Pick ${ctx.name(c.code)}`}
+              images={ctx.images}
+              onClick={() => send(i)}
+            />
+          </li>
+        ))}
+        {prompt.unselect_cards.map((c, i) => (
+          <li key={`u${i}`}>
+            <CardChoice
+              code={c.code}
+              label={`Drop ${ctx.name(c.code)}`}
+              images={ctx.images}
+              pressed
+              onClick={() => send(prompt.select_cards.length + i)}
+            />
+          </li>
+        ))}
+      </ul>
+      <div className="prompt__actions">
+        {prompt.can_finish && (
+          <button type="button" onClick={() => send(null)}>
+            Finish
+          </button>
+        )}
+        {prompt.can_cancel && !prompt.can_finish && (
+          <button type="button" onClick={() => send(null)}>
+            Cancel
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -271,6 +319,7 @@ export function SumPrompt({
         onToggle={(i) => setPicked(toggle(picked, i))}
         me={ctx.me}
         name={ctx.name}
+        images={ctx.images}
       />
       <ConfirmRow
         ok={ok}
