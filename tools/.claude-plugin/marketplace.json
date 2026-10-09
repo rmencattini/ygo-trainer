@@ -1,0 +1,11 @@
+{
+  "name": "ygo-tools",
+  "owner": { "name": "rmencattini" },
+  "plugins": [
+    {
+      "name": "save-token-jev",
+      "source": "./save-token-jev/plugins/claude-save-token-jev",
+      "description": "Jev-guided verbatim compaction (submodule, run npm run tools:build first)"
+    }
+  ]
+}

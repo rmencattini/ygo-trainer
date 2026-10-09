@@ -1,5 +1,32 @@
 {
+  "extraKnownMarketplaces": {
+    "supercov": {
+      "source": { "source": "github", "repo": "supercorp-ai/supercov" }
+    },
+    "ygo-tools": {
+      "source": { "source": "directory", "path": "tools" }
+    }
+  },
+  "enabledPlugins": {
+    "supercov@supercov": true,
+    "save-token-jev@ygo-tools": true
+  },
+  "env": {
+    "CLAUDE_CODE_ENABLE_FUNCTION_HOOKS": "1",
+    "ANTHROPIC_BASE_URL": "http://127.0.0.1:4000",
+    "CLAUDE_CODE_GATEWAY_HINT_HEADERS": "1"
+  },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/jev-tools-check.mjs\""
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",

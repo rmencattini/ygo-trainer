@@ -1,3 +1,4 @@
 sh scripts/check-identity.sh
 node scripts/check-hours.mjs
 npx lint-staged
+npm run review:jev

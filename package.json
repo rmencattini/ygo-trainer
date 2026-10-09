@@ -15,6 +15,9 @@
     "tauri": "tauri",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:cov": "supercov -- npm test",
+    "review:jev": "node scripts/review-jev.mjs",
+    "report:jev": "node scripts/jev-tools-report.mjs",
     "test:e2e": "playwright test",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -23,6 +26,7 @@
     "gh": "sh scripts/gh.sh",
     "prepare": "husky",
     "cards:locale": "node scripts/cards-locale.mjs",
+    "tools:build": "npm ci --ignore-scripts --prefix tools/save-token-jev && npm run build --prefix tools/save-token-jev && npm ci --ignore-scripts --prefix tools/jev-review",
     "cards:export": "node scripts/cards-export.mjs",
     "decks:refresh": "node scripts/decks-refresh.mjs"
   },
@@ -50,6 +54,7 @@
     "jsdom": "^29.1.1",
     "lint-staged": "^17.6.0",
     "prettier": "^3.9.9",
+    "supercov": "4.0.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.1",
     "vitest": "^4.1.11"

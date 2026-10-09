@@ -24,7 +24,7 @@ Rules engine: EDOPro `ocgcore` (WASM). Full plan: `docs/PLAN.md`.
 - `data/` — `scripts/` (ProjectIgnis/CardScripts) and `cdb/` (ProjectIgnis/BabelCDB) as shallow submodules;
   `decks/` holds `.ydk` files; `strings.conf` (EDOPro system strings, AGPL)
 - `src-tauri/` — Rust shell: file access and OS secret store only, no game logic
-- `scripts/` — repo guards (identity, commit hours) and their tests
+- `scripts/` — repo guards (identity, commit hours), Jev tool checks and their tests
 - `tests/e2e/` — Playwright specs; screenshots land in `tests/e2e/artifacts/`
 
 ## Rules
@@ -37,6 +37,11 @@ Rules engine: EDOPro `ocgcore` (WASM). Full plan: `docs/PLAN.md`.
 - **Commits:** Conventional Commits (`feat(ai): …`, `fix(engine): …`), small, each one green.
 - **Milestones:** write the acceptance tests first, then code until green. Never call a milestone done
   with red tests. One branch + PR per milestone (`m<N>-<slug>`); the user merges.
+- **Jev tooling (trial until Fri 30 Oct 2026):** the session-start line says which tool is not ready;
+  fix it or tell the user before other work. For coverage use `npm run test:cov`, not bare `npm test`.
+  Run `/supercov:quality` on every new package. The pre-commit hook runs `npm run review:jev`; for each
+  finding it prints, append `{date, finding, verdict}` (verdict `fixed`, `false-positive` or `ignored`)
+  to `.metrics/review-verdicts.jsonl` before the next commit or `gh pr create`.
 - **Golden duels:** engine/AI behaviour is tested by replaying a fixed seed + decks + responses and
   asserting the board. Add one for every combo line and handtrap rule. They live in
   `packages/*/test/*.golden.test.ts`; see `packages/engine/test/normal-summon.golden.test.ts`.
