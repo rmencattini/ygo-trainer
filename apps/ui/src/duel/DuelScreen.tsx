@@ -62,6 +62,10 @@ interface Props {
   catalog: CardCatalog;
   texts: TextSource;
   images?: ImageSource;
+  /** Start a new duel with the same decks and turn order. */
+  onRematch?: () => void;
+  /** Go back to the setup screen. */
+  onLeave?: () => void;
 }
 
 const FLAT_KEY = "ygo.flatBoard";
@@ -83,12 +87,20 @@ function saveFlat(flat: boolean) {
   }
 }
 
-export function DuelScreen({ session, catalog, texts, images }: Props) {
+export function DuelScreen({
+  session,
+  catalog,
+  texts,
+  images,
+  onRematch,
+  onLeave,
+}: Props) {
   const [lang, setLang] = useState<Lang>("en");
   const [, setVersion] = useState(0);
   const [focus, setFocus] = useState<CardRef | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
   const [flat, setFlat] = useState(loadFlat);
+  const [boardShown, setBoardShown] = useState(false);
   // Clicking the table outside a card folds the prompt; a card or a new prompt opens it.
   const [foldedFor, setFoldedFor] = useState<Message | null>(null);
   const folded = foldedFor !== null && foldedFor === session.prompt;
@@ -138,6 +150,12 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
 
   const { board } = session;
   const whose = board.turnPlayer === session.human ? "Your" : "Opponent's";
+  const result =
+    session.winner === session.human
+      ? "You win"
+      : session.winner === null
+        ? "Draw"
+        : "You lose";
 
   return (
     <div className="duel">
@@ -217,15 +235,39 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
         >
           Flat board
         </button>
+        {session.ended && !boardShown && (
+          <div
+            className="prompt prompt--dialog duel__end"
+            role="dialog"
+            aria-label="Duel over"
+          >
+            <h3>{result}</h3>
+            <p className="prompt__event">
+              Turn {board.turn} · Your LP {board.players[session.human].lp} ·
+              Opponent's LP {board.players[1 - session.human].lp}
+            </p>
+            <div className="prompt__actions">
+              {onRematch && (
+                <button type="button" onClick={onRematch}>
+                  Rematch
+                </button>
+              )}
+              {onLeave && (
+                <button type="button" onClick={onLeave}>
+                  Back to setup
+                </button>
+              )}
+              <button type="button" onClick={() => setBoardShown(true)}>
+                See the board
+              </button>
+            </div>
+          </div>
+        )}
       </section>
       <aside className="duel__side" aria-label="Prompts and log">
         {session.ended && (
           <p className="duel__result" role="status">
-            {session.winner === session.human
-              ? "You win"
-              : session.winner === null
-                ? "Draw"
-                : "You lose"}
+            {result}
           </p>
         )}
         <h2 className="duel__log-title">Duel log</h2>

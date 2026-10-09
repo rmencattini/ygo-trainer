@@ -707,6 +707,18 @@ legend {
     0 0 0 100vmax rgb(0 0 0 / 45%),
     0 12px 30px rgb(0 0 0 / 60%);
 }
+.duel__end {
+  width: min(420px, 92%);
+  text-align: center;
+}
+.prompt.duel__end h3 {
+  font-family: var(--title);
+  font-size: 2em;
+  color: var(--gold);
+}
+.prompt.duel__end .prompt__actions {
+  justify-content: center;
+}
 .prompt__aside {
   float: right;
   margin-left: 12px;

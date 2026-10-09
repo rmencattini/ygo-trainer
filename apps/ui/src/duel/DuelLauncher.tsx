@@ -53,6 +53,7 @@ export function DuelLauncher({
     texts: TextSource;
   } | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [config, setConfig] = useState<DuelConfig | null>(null);
 
   useEffect(() => {
     fetchDeckLibrary()
@@ -60,7 +61,10 @@ export function DuelLauncher({
       .catch((e: Error) => setStatus(e.message));
   }, []);
 
-  const start = async ({ goFirst, mine, theirs }: DuelConfig) => {
+  const start = async (next: DuelConfig) => {
+    const { goFirst, mine, theirs } = next;
+    setConfig(next);
+    setDuel(null);
     setStatus("Loading the engine…");
     try {
       const [strings, scripts] = await Promise.all([
@@ -107,6 +111,8 @@ export function DuelLauncher({
           catalog={catalog}
           texts={duel.texts}
           images={images}
+          onRematch={() => config && void start(config)}
+          onLeave={() => setDuel(null)}
         />
       </div>
     );

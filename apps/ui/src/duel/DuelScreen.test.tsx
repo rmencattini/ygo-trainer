@@ -7,6 +7,7 @@ import { createNodeEngine, loadYdk } from "@ygo/engine/node";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 import type { ImageSource } from "../cards/CardImage";
 import { DuelScreen } from "./DuelScreen";
@@ -36,7 +37,11 @@ function frenchCatalog() {
   return loadCatalog({ cdb: join(DATA, "cdb", "cards.cdb"), localeDir: dir });
 }
 
-async function setup(cards = catalog, images?: ImageSource) {
+async function setup(
+  cards = catalog,
+  images?: ImageSource,
+  extra: Partial<ComponentProps<typeof DuelScreen>> & { finish?: boolean } = {},
+) {
   const engine = await createNodeEngine({ dataDir: DATA });
   const duel = engine.startDuel({
     seed: [1n, 2n, 3n, 4n],
@@ -47,12 +52,18 @@ async function setup(cards = catalog, images?: ImageSource) {
     opponent: passiveResponse,
     texts,
   });
+  // Both sides pass until the 20-card decks run out.
+  if (extra.finish)
+    for (let guard = 0; guard < 500 && !session.ended; guard++)
+      session.answer(passiveResponse(session.prompt!));
   render(
     <DuelScreen
       session={session}
       catalog={cards}
       texts={texts}
       images={images}
+      onRematch={extra.onRematch}
+      onLeave={extra.onLeave}
     />,
   );
   return session;
@@ -230,6 +241,42 @@ describe("DuelScreen", () => {
       expect(document.querySelector(".board")).not.toHaveClass("board--tilted");
       expect(stored.get("ygo.flatBoard")).toBe("1");
       vi.unstubAllGlobals();
+    });
+  });
+
+  describe("duel end", () => {
+    it("shows the result over the table, then offers a rematch or the setup", async () => {
+      const onRematch = vi.fn();
+      const onLeave = vi.fn();
+      const session = await setup(catalog, undefined, {
+        finish: true,
+        onRematch,
+        onLeave,
+      });
+      expect(session.ended).toBe(true);
+      const dialog = screen.getByRole("dialog", { name: "Duel over" });
+      expect(
+        within(dialog).getByRole("heading", { name: "You win" }),
+      ).toBeInTheDocument();
+      expect(within(dialog).getByText(/Turn \d+/)).toBeInTheDocument();
+      fireEvent.click(within(dialog).getByRole("button", { name: "Rematch" }));
+      expect(onRematch).toHaveBeenCalledOnce();
+      fireEvent.click(
+        within(dialog).getByRole("button", { name: "Back to setup" }),
+      );
+      expect(onLeave).toHaveBeenCalledOnce();
+    });
+
+    it("hides the dialog to look at the board, and keeps the result by the log", async () => {
+      await setup(catalog, undefined, { finish: true });
+      fireEvent.click(screen.getByRole("button", { name: "See the board" }));
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(screen.getByRole("status")).toHaveTextContent("You win");
+    });
+
+    it("shows no end dialog while the duel runs", async () => {
+      await setup();
+      expect(screen.queryByRole("dialog", { name: "Duel over" })).toBeNull();
     });
   });
 });
