@@ -44,7 +44,7 @@ function App() {
             </button>
           </nav>
           {view === "duel" ? (
-            <DuelLauncher catalog={cards.catalog} />
+            <DuelLauncher catalog={cards.catalog} images={cards.images} />
           ) : (
             <CardViewer catalog={cards.catalog} images={cards.images} />
           )}

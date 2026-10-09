@@ -5,6 +5,7 @@ import {
   type PlayerBoard,
 } from "@ygo/engine";
 import { describe, expect, it, vi } from "vitest";
+import type { ImageSource } from "../cards/CardImage";
 import { Board } from "./Board";
 
 const NAMES: Record<number, string> = {
@@ -27,7 +28,8 @@ const empty = (): PlayerBoard => ({
 function board(): BoardState {
   const me = empty();
   const opp = empty();
-  me.hand = [{ code: 2, position: 1 }];
+  // Like the engine: hand cards come face-down.
+  me.hand = [{ code: 2, position: 10 }];
   me.monsters[2] = { code: 1, position: 1, attack: 2000, defense: 100 };
   opp.lp = 7200;
   opp.hand = [{ code: 4, position: 10 }];
@@ -36,12 +38,13 @@ function board(): BoardState {
   return { players: [me, opp], turn: 1, turnPlayer: 0, phase: 4 };
 }
 
-function setup(selectable: string[] = []) {
+function setup(selectable: string[] = [], images?: ImageSource) {
   const onFocus = vi.fn();
   const onHover = vi.fn();
   render(
     <Board
       board={board()}
+      images={images}
       me={0}
       name={(code) => NAMES[code]}
       selectable={new Set(selectable)}
@@ -100,5 +103,23 @@ describe("Board", () => {
       screen.getByRole("button", { name: "Warwolf, Monster Zone 3, ATK 2000" }),
     );
     expect(onHover).toHaveBeenCalledWith(1);
+  });
+
+  it("shows card art for face-up cards only", async () => {
+    const images = {
+      get: vi.fn(async (code: number) => new Uint8Array([code])),
+    };
+    URL.createObjectURL = vi.fn(() => "blob:art");
+    URL.revokeObjectURL = vi.fn();
+    setup([], images);
+    const warwolf = screen.getByRole("button", {
+      name: "Warwolf, Monster Zone 3, ATK 2000",
+    });
+    expect(await within(warwolf).findByRole("img")).toHaveAttribute(
+      "src",
+      "blob:art",
+    );
+    const asked = images.get.mock.calls.map(([code]) => code).sort();
+    expect(asked).toEqual([1, 2]);
   });
 });

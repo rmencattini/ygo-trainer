@@ -8,10 +8,12 @@ export function CardImage({
   code,
   name,
   images,
+  className = "card-image",
 }: {
   code: number;
   name: string;
   images: ImageSource;
+  className?: string;
 }) {
   const [url, setUrl] = useState<string | null>(null);
 
@@ -33,6 +35,8 @@ export function CardImage({
   }, [code, images]);
 
   if (!url)
-    return <div className="card-image card-image--empty" aria-hidden="true" />;
-  return <img className="card-image" src={url} alt={name} />;
+    return (
+      <div className={`${className} ${className}--empty`} aria-hidden="true" />
+    );
+  return <img className={className} src={url} alt={name} />;
 }
