@@ -15,6 +15,19 @@ export function CardViewer({ catalog, images }: Props) {
   const results = query.trim() ? catalog.search(query, lang, 30) : [];
   const card = selected === null ? null : catalog.get(selected, lang);
 
+  // Up / Down in the search box walk the results and show each card.
+  const step = (by: number) => {
+    if (results.length === 0) return;
+    const at = results.findIndex((c) => c.code === selected);
+    const next =
+      at === -1
+        ? by > 0
+          ? 0
+          : results.length - 1
+        : Math.min(Math.max(at + by, 0), results.length - 1);
+    setSelected(results[next]!.code);
+  };
+
   return (
     <section className="card-viewer">
       <div className="card-viewer__controls">
@@ -24,6 +37,11 @@ export function CardViewer({ catalog, images }: Props) {
           placeholder="Search a card…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+            e.preventDefault();
+            step(e.key === "ArrowDown" ? 1 : -1);
+          }}
         />
         <select
           aria-label="Card text language"
@@ -44,6 +62,10 @@ export function CardViewer({ catalog, images }: Props) {
               <button
                 type="button"
                 aria-pressed={c.code === selected}
+                ref={(el) => {
+                  if (el && c.code === selected)
+                    el.scrollIntoView?.({ block: "nearest" });
+                }}
                 onClick={() => setSelected(c.code)}
               >
                 {c.name}

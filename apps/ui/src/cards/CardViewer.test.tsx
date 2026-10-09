@@ -94,4 +94,27 @@ describe("CardViewer", () => {
     });
     expect(screen.getByText("No card matches “zzz”.")).toBeInTheDocument();
   });
+
+  it("moves through the results with the arrow keys while you type", () => {
+    setup();
+    const search = screen.getByLabelText("Search cards");
+    fireEvent.change(search, { target: { value: "a" } });
+    const names = screen
+      .getAllByRole("button", { pressed: false })
+      .map((b) => b.textContent);
+    expect(names).toHaveLength(2);
+    const shown = () => screen.getByRole("heading", { level: 2 }).textContent;
+
+    fireEvent.keyDown(search, { key: "ArrowDown" });
+    expect(shown()).toBe(names[0]);
+    fireEvent.keyDown(search, { key: "ArrowDown" });
+    expect(shown()).toBe(names[1]);
+    fireEvent.keyDown(search, { key: "ArrowDown" });
+    expect(shown()).toBe(names[1]);
+    fireEvent.keyDown(search, { key: "ArrowUp" });
+    expect(shown()).toBe(names[0]);
+    expect(
+      screen.getByRole("button", { name: names[0]!, pressed: true }),
+    ).toBeInTheDocument();
+  });
 });
