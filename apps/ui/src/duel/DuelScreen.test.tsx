@@ -4,9 +4,11 @@ import { passiveResponse } from "@ygo/ai";
 import { loadCatalog } from "@ygo/cards/node";
 import { DuelSession, parseStringsConf } from "@ygo/engine";
 import { createNodeEngine, loadYdk } from "@ygo/engine/node";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { ImageSource } from "../cards/CardImage";
 import { DuelScreen } from "./DuelScreen";
 import { textSource } from "./loadDuel";
 
@@ -21,7 +23,20 @@ const texts = textSource(
 );
 const deck = loadYdk(join(DATA, "decks", "m1-vanilla.ydk"));
 
-async function setup() {
+/** Same cards with a fake French table, so the screen has a language to switch to. */
+function frenchCatalog() {
+  const dir = mkdtempSync(join(tmpdir(), "ygo-fr-"));
+  const fr = Object.fromEntries(
+    deck.main.map((code) => [
+      code,
+      { name: `FR ${catalog.get(code)!.name}`, desc: "Texte en français." },
+    ]),
+  );
+  writeFileSync(join(dir, "fr.json"), JSON.stringify(fr));
+  return loadCatalog({ cdb: join(DATA, "cdb", "cards.cdb"), localeDir: dir });
+}
+
+async function setup(cards = catalog, images?: ImageSource) {
   const engine = await createNodeEngine({ dataDir: DATA });
   const duel = engine.startDuel({
     seed: [1n, 2n, 3n, 4n],
@@ -32,7 +47,14 @@ async function setup() {
     opponent: passiveResponse,
     texts,
   });
-  render(<DuelScreen session={session} catalog={catalog} texts={texts} />);
+  render(
+    <DuelScreen
+      session={session}
+      catalog={cards}
+      texts={texts}
+      images={images}
+    />,
+  );
   return session;
 }
 
@@ -84,5 +106,38 @@ describe("DuelScreen", () => {
     expect(
       within(screen.getByRole("log")).getByText("Opponent's turn"),
     ).toBeInTheDocument();
+  });
+
+  it("switches card names and text to French, but not the log", async () => {
+    await setup(frenchCatalog());
+    fireEvent.change(
+      screen.getByRole("combobox", { name: "Card text language" }),
+      { target: { value: "fr" } },
+    );
+    const mine = screen.getByRole("region", { name: "Your field" });
+    const first = within(mine).getAllByRole("button", { name: /, hand$/ })[0];
+    expect(first.getAttribute("aria-label")).toMatch(/^FR /);
+    fireEvent.mouseEnter(first);
+    const details = screen.getByRole("complementary", { name: "Card details" });
+    expect(within(details).getByText("Texte en français.")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("log")).queryByText(/FR /),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the hovered card's art next to its text", async () => {
+    const images = { get: vi.fn(async () => new Uint8Array([1])) };
+    URL.createObjectURL = vi.fn(() => "blob:art");
+    URL.revokeObjectURL = vi.fn();
+    await setup(catalog, images);
+    const mine = screen.getByRole("region", { name: "Your field" });
+    const first = within(mine).getAllByRole("button", { name: /, hand$/ })[0];
+    fireEvent.mouseEnter(first);
+    const name = first.getAttribute("aria-label")!.replace(/, hand$/, "");
+    expect(
+      await within(
+        screen.getByRole("complementary", { name: "Card details" }),
+      ).findByRole("img", { name }),
+    ).toHaveAttribute("src", "blob:art");
   });
 });

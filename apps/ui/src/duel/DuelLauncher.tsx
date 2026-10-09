@@ -1,5 +1,6 @@
 import { passiveResponse } from "@ygo/ai";
 import type { CardCatalog } from "@ygo/cards";
+import type { ImageSource } from "../cards/CardImage";
 import { DuelSession, Engine, type TextSource } from "@ygo/engine";
 import { useEffect, useState } from "react";
 import {
@@ -39,7 +40,13 @@ const storage = (() => {
 })();
 
 /** Setup screen, then the duel. The opponent passes every turn until the AI lands (M5). */
-export function DuelLauncher({ catalog }: { catalog: CardCatalog }) {
+export function DuelLauncher({
+  catalog,
+  images,
+}: {
+  catalog: CardCatalog;
+  images?: ImageSource;
+}) {
   const [library, setLibrary] = useState<DeckEntry[] | null>(null);
   const [duel, setDuel] = useState<{
     session: DuelSession;
@@ -93,6 +100,7 @@ export function DuelLauncher({ catalog }: { catalog: CardCatalog }) {
           session={duel.session}
           catalog={catalog}
           texts={duel.texts}
+          images={images}
         />
       </div>
     );

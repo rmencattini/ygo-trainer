@@ -1,6 +1,8 @@
 :root {
   font-family: system-ui, sans-serif;
   color-scheme: light dark;
+  /* Keep the scrollbar's space so the layout does not shift when it appears. */
+  scrollbar-gutter: stable;
 }
 .app {
   max-width: 960px;
@@ -83,16 +85,34 @@
 .duel {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
+  align-items: start;
   gap: 16px;
 }
 .duel__status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 8px;
   font-weight: 600;
+}
+.duel__status p {
+  margin: 0;
+}
+.duel__card .card-image {
+  display: block;
+  width: 160px;
+  margin-bottom: 8px;
 }
 .duel__side {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+/* Fixed height: hovering cards with longer text must not push the log or the page. */
+.duel__details {
+  height: 440px;
+  overflow-y: auto;
 }
 .duel__log {
   max-height: 260px;
@@ -166,6 +186,32 @@
   background: color-mix(in srgb, #c98a2b 25%, transparent);
   border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
   cursor: default;
+}
+.card {
+  position: relative;
+}
+.card__art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px;
+}
+.card__art--empty {
+  display: none;
+}
+/* With art loaded the name is redundant (it stays in the aria-label); the ATK sits on top. */
+.card__art:not(.card__art--empty) ~ .card__name {
+  visibility: hidden;
+}
+.card__stats {
+  position: relative;
+  align-self: flex-end;
+  padding: 0 2px;
+  border-radius: 2px;
+  color: #fff;
+  background: rgb(0 0 0 / 65%);
 }
 .card--back {
   background: repeating-linear-gradient(

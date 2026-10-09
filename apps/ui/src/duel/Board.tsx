@@ -4,6 +4,7 @@ import {
   type CardInfo,
   type PlayerBoard,
 } from "@ygo/engine";
+import { CardImage, type ImageSource } from "../cards/CardImage";
 import type { CardRef } from "./prompts/context";
 
 const FACEDOWN = 0xa;
@@ -13,6 +14,8 @@ interface Props {
   board: BoardState;
   me: 0 | 1;
   name(code: number): string;
+  /** Card art for face-up cards; without it cards show their name only. */
+  images?: ImageSource;
   /** `${controller}-${location}-${sequence}` of cards the current prompt uses. */
   selectable: Set<string>;
   focus: CardRef | null;
@@ -45,7 +48,10 @@ function Card(
   const { card, at, mine } = props;
   const zone = zoneLabel(at.location, at.sequence);
   if (!card) return <div className="zone" aria-label={`Empty ${zone}`} />;
-  const faceDown = ((card.position ?? 0) & FACEDOWN) !== 0;
+  // The engine marks every hand card face-down; only field cards can be set.
+  const faceDown =
+    at.location !== CardLocation.HAND &&
+    ((card.position ?? 0) & FACEDOWN) !== 0;
   const hidden = !mine && (faceDown || at.location === CardLocation.HAND);
   const name = hidden ? "Face-down card" : props.name(card.code ?? 0);
   const stats =
@@ -73,6 +79,14 @@ function Card(
       onClick={() => selectable && props.onFocus(at)}
       onMouseEnter={() => !hidden && card.code && props.onHover(card.code)}
     >
+      {props.images && !hidden && !faceDown && card.code ? (
+        <CardImage
+          code={card.code}
+          name={name}
+          images={props.images}
+          className="card__art"
+        />
+      ) : null}
       <span className="card__name">{name}</span>
       {stats && <span className="card__stats">{card.attack}</span>}
     </button>

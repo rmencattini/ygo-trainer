@@ -1,4 +1,4 @@
-import type { CardCatalog } from "@ygo/cards";
+import type { CardCatalog, Lang } from "@ygo/cards";
 import {
   cardMatchesOpcode,
   describeEffect,
@@ -9,7 +9,8 @@ import {
   type TextSource,
 } from "@ygo/engine";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CardDetails } from "../cards/CardDetails";
+import { CardDetails, LANG_NAMES } from "../cards/CardDetails";
+import { CardImage, type ImageSource } from "../cards/CardImage";
 import { Board, cardKey } from "./Board";
 import { engineSources } from "./loadDuel";
 import type { CardRef, PromptContext } from "./prompts/context";
@@ -60,9 +61,11 @@ interface Props {
   session: DuelSession;
   catalog: CardCatalog;
   texts: TextSource;
+  images?: ImageSource;
 }
 
-export function DuelScreen({ session, catalog, texts }: Props) {
+export function DuelScreen({ session, catalog, texts, images }: Props) {
+  const [lang, setLang] = useState<Lang>("en");
   const [, setVersion] = useState(0);
   const [focus, setFocus] = useState<CardRef | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -83,9 +86,15 @@ export function DuelScreen({ session, catalog, texts }: Props) {
     setVersion((v) => v + 1);
   };
 
+  // Card names follow the language switch; the log and prompt wording stay English.
+  const name = (code: number) =>
+    lang === "en"
+      ? texts.name(code)
+      : (catalog.get(code, lang)?.name ?? texts.name(code));
+
   const ctx: PromptContext = {
     me: session.human,
-    name: texts.name,
+    name,
     describe: (d) => describeEffect(d, texts),
     hint: session.hint === null ? null : describeEffect(session.hint, texts),
     focus,
@@ -105,13 +114,27 @@ export function DuelScreen({ session, catalog, texts }: Props) {
   return (
     <div className="duel">
       <div className="duel__main">
-        <p className="duel__status">
-          Turn {board.turn} · {whose} {PHASE_NAMES[board.phase] ?? ""}
-        </p>
+        <div className="duel__status">
+          <p>
+            Turn {board.turn} · {whose} {PHASE_NAMES[board.phase] ?? ""}
+          </p>
+          <select
+            aria-label="Card text language"
+            value={lang}
+            onChange={(e) => setLang(e.target.value as Lang)}
+          >
+            {catalog.languages().map((l) => (
+              <option key={l} value={l}>
+                {LANG_NAMES[l]}
+              </option>
+            ))}
+          </select>
+        </div>
         <Board
           board={board}
           me={session.human}
-          name={texts.name}
+          name={name}
+          images={images}
           selectable={promptCards(session.prompt)}
           focus={focus}
           onFocus={(card) =>
@@ -135,7 +158,16 @@ export function DuelScreen({ session, catalog, texts }: Props) {
         )}
         <aside className="duel__details" aria-label="Card details">
           {hovered ? (
-            <CardDetails catalog={catalog} code={hovered} lang="en" />
+            <div className="duel__card">
+              {images && (
+                <CardImage
+                  code={hovered}
+                  name={name(hovered)}
+                  images={images}
+                />
+              )}
+              <CardDetails catalog={catalog} code={hovered} lang={lang} />
+            </div>
           ) : (
             <p>Hover a card to read it.</p>
           )}
