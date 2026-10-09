@@ -1,0 +1,27 @@
+[
+  {
+    "code": 14558127,
+    "name": "Ash Blossom & Joyous Spring",
+    "when": "first-chance"
+  },
+  { "code": 94145021, "name": "Droll & Lock Bird", "when": "first-chance" },
+  {
+    "code": 73642296,
+    "name": "Ghost Belle & Haunted Mansion",
+    "when": "first-chance"
+  },
+  {
+    "code": 59438930,
+    "name": "Ghost Ogre & Snow Rabbit",
+    "when": "first-chance"
+  },
+  { "code": 97268402, "name": "Effect Veiler", "when": "first-chance" },
+  {
+    "code": 27204311,
+    "name": "Nibiru, the Primal Being",
+    "when": "first-chance"
+  },
+  { "code": 42141493, "name": "Mulcharmy Fuwalos", "when": "first-chance" },
+  { "code": 84192580, "name": "Mulcharmy Purulia", "when": "first-chance" },
+  { "code": 23434538, "name": "Maxx \"C\"", "when": "after-special-summon" }
+]

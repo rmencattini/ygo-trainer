@@ -56,6 +56,23 @@ const QUERY_FLAGS =
 // Scripts the EDOPro client loads by hand before a duel starts.
 const BOOT_SCRIPTS = ["constant.lua", "utility.lua"];
 
+// ocgcore-wasm 0.1.2 predates some CHAININFO flags today's scripts ask for (utility code reads them
+// on every Duel.RegisterEffect during a chain). Answer nil for those instead of raising.
+const COMPAT_SCRIPT = `
+local get_chain_info=Duel.GetChainInfo
+function Duel.GetChainInfo(ch,...)
+	local flags=table.pack(...)
+	local res=table.pack(pcall(get_chain_info,ch,...))
+	if res[1] then return table.unpack(res,2,res.n) end
+	local out={}
+	for i=1,flags.n do
+		local ok,value=pcall(get_chain_info,ch,flags[i])
+		if ok then out[i]=value end
+	end
+	return table.unpack(out,1,flags.n)
+end
+`;
+
 export class Duel {
   readonly log: LogEntry[] = [];
 
@@ -180,6 +197,8 @@ export class Engine {
         throw new Error(`could not load ${name}`);
       }
     }
+    if (!this.core.loadScript(handle, "compat.lua", COMPAT_SCRIPT))
+      throw new Error("could not load compat.lua");
 
     options.decks.forEach((deck, team) => {
       const add = (code: number, location: OcgLocation) =>
