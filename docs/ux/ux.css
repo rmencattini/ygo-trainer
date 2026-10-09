@@ -1,0 +1,189 @@
+/* Shared look for the UX revamp mockups (setup, cards, index). The duel page keeps its own inline CSS. */
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=Orbitron:wght@500;700&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+body {
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  background-attachment: fixed;
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+a {
+  color: var(--accent);
+}
+
+body[data-theme="arena"] {
+  --text: #e9edf2;
+  --muted: #9aa4b0;
+  --accent: #d9b45f;
+  --accent-ink: #1b1406;
+  --go: #5fd3ff;
+  --panel: rgba(12, 16, 20, 0.82);
+  --tile: rgba(255, 255, 255, 0.05);
+  --line: rgba(217, 180, 95, 0.35);
+  --head: Cinzel, serif;
+  --radius: 8px;
+  --bg: radial-gradient(
+    ellipse at 50% 30%,
+    #3b4249 0%,
+    #1a1f24 55%,
+    #0d1013 100%
+  );
+  --btn: linear-gradient(180deg, #e8c46d, #b38c34);
+}
+body[data-theme="holo"] {
+  --text: #e6f4ff;
+  --muted: #8fb3d6;
+  --accent: #45e0ff;
+  --accent-ink: #02142e;
+  --go: #45e0ff;
+  --panel: rgba(2, 10, 28, 0.8);
+  --tile: rgba(40, 140, 255, 0.1);
+  --line: rgba(69, 224, 255, 0.4);
+  --head: Orbitron, monospace;
+  --radius: 4px;
+  --bg:
+    repeating-linear-gradient(
+      0deg,
+      rgba(80, 170, 255, 0.06) 0 1px,
+      transparent 1px 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(80, 170, 255, 0.06) 0 1px,
+      transparent 1px 40px
+    ),
+    radial-gradient(ellipse at 50% 40%, #0f3d82 0%, #061a3d 50%, #020816 100%);
+  --btn: #45e0ff;
+}
+body[data-theme="clean"] {
+  --text: #e9edf2;
+  --muted: #8b95a1;
+  --accent: #8aa8ff;
+  --accent-ink: #0f1216;
+  --go: #8aa8ff;
+  --panel: #161a20;
+  --tile: #1c2129;
+  --line: #2a313b;
+  --head: Inter, system-ui, sans-serif;
+  --radius: 10px;
+  --bg: #0f1216;
+  --btn: #8aa8ff;
+}
+
+/* top bar (built by ux.js) */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: #0a0c0f;
+  border-bottom: 1px solid #2a2f36;
+  font-size: 13px;
+  color: #e9edf2;
+  font-family: Inter, system-ui, sans-serif;
+}
+.topbar b {
+  margin-right: 4px;
+}
+.topbar a {
+  color: #cfd6de;
+  text-decoration: none;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+.topbar a[aria-current="page"] {
+  background: #2a313b;
+  color: #fff;
+}
+.topbar .sep {
+  width: 1px;
+  height: 20px;
+  background: #333a43;
+  margin: 0 6px;
+}
+.topbar .tab {
+  background: #1b2027;
+  color: #cfd6de;
+  border: 1px solid #333a43;
+  border-radius: 6px;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+.topbar .tab[aria-pressed="true"] {
+  background: #e9edf2;
+  color: #111;
+  border-color: #e9edf2;
+}
+
+/* building blocks */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.h {
+  font-family: var(--head);
+  color: var(--accent);
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+.muted {
+  color: var(--muted);
+}
+.btn {
+  border: 0;
+  border-radius: var(--radius);
+  padding: 10px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--btn);
+  color: var(--accent-ink);
+}
+.btn.ghost {
+  background: var(--tile);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+.btn.big {
+  font-size: 18px;
+  padding: 14px 40px;
+  font-family: var(--head);
+  letter-spacing: 0.06em;
+}
+body[data-theme="holo"] .btn:not(.ghost) {
+  box-shadow: 0 0 18px rgba(69, 224, 255, 0.45);
+}
+body[data-theme="arena"] .btn.big {
+  box-shadow:
+    0 0 0 2px #6b5520,
+    0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.art {
+  background: linear-gradient(135deg, #3a4a5e, #1a2230);
+  overflow: hidden;
+}
+.art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

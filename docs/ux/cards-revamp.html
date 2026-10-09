@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Card Viewer Revamp</title>
+    <link rel="stylesheet" href="ux.css" />
+    <style>
+      .wrap {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 20px;
+        max-width: 1360px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .tools {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .search {
+        display: flex;
+        gap: 8px;
+      }
+      .search input {
+        flex: 1;
+        padding: 10px 14px;
+        border-radius: var(--radius);
+        background: var(--panel);
+        border: 1px solid var(--line);
+        font-size: 15px;
+      }
+      .lang {
+        display: flex;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .lang button {
+        border: 0;
+        background: var(--panel);
+        padding: 0 14px;
+        cursor: pointer;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .lang button[aria-pressed="true"] {
+        background: var(--btn);
+        color: var(--accent-ink);
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .chip {
+        border: 1px solid var(--line);
+        background: var(--tile);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .chip[aria-pressed="true"] {
+        background: var(--accent);
+        color: var(--accent-ink);
+        border-color: var(--accent);
+        font-weight: 700;
+      }
+      .count {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .results {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+        gap: 14px;
+      }
+      .tile {
+        cursor: pointer;
+        border: 0;
+        padding: 0;
+        background: none;
+        text-align: left;
+      }
+      .tile .pic {
+        aspect-ratio: 1 / 1;
+        border-radius: var(--radius);
+        border: 3px solid var(--frame);
+        position: relative;
+      }
+      .tile .pic .tag {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1px 5px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+      }
+      .tile .nm {
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 6px;
+        line-height: 1.25;
+      }
+      .tile .sub {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      .tile[aria-pressed="true"] .pic {
+        box-shadow:
+          0 0 0 2px var(--accent),
+          0 0 16px var(--accent);
+      }
+      .k-effect {
+        --frame: #c8723a;
+      }
+      .k-normal {
+        --frame: #d6b75c;
+      }
+      .k-synchro {
+        --frame: #e9e9ea;
+      }
+      .k-link {
+        --frame: #2d63a8;
+      }
+      .k-spell {
+        --frame: #1f8f7f;
+      }
+      .k-trap {
+        --frame: #ad3580;
+      }
+
+      .detail {
+        position: sticky;
+        top: 64px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-self: start;
+      }
+      .detail .big {
+        aspect-ratio: 1 / 1;
+        border-radius: var(--radius);
+        border: 4px solid var(--frame);
+      }
+      .detail .h {
+        font-size: 20px;
+      }
+      .detail .type {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .stats {
+        display: flex;
+        gap: 8px;
+      }
+      .stats span {
+        padding: 4px 10px;
+        border-radius: var(--radius);
+        background: var(--tile);
+        border: 1px solid var(--line);
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .text {
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0;
+      }
+      .coach {
+        padding: 10px 12px;
+        border-radius: var(--radius);
+        background: var(--tile);
+        border-left: 3px solid var(--accent);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .coach b {
+        color: var(--accent);
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <main>
+        <div class="tools">
+          <div class="search">
+            <input id="q" type="search" placeholder="Search a card…" value="" />
+            <div class="lang">
+              <button aria-pressed="true">EN</button
+              ><button aria-pressed="false">FR</button>
+            </div>
+          </div>
+          <div class="chips" id="chips">
+            <button class="chip" aria-pressed="true" data-f="all">All</button>
+            <button class="chip" aria-pressed="false" data-f="monster">
+              Monsters
+            </button>
+            <button class="chip" aria-pressed="false" data-f="spell">
+              Spells
+            </button>
+            <button class="chip" aria-pressed="false" data-f="trap">
+              Traps
+            </button>
+            <button class="chip" aria-pressed="false" data-f="hand">
+              Handtraps
+            </button>
+            <button class="chip" aria-pressed="false" data-f="extra">
+              Extra Deck
+            </button>
+          </div>
+          <div class="count" id="count"></div>
+        </div>
+        <div class="results" id="results"></div>
+      </main>
+      <aside class="panel detail" id="detail"></aside>
+    </div>
+
+    <script src="ux.js"></script>
+    <script>
+      const IMG = (id) =>
+        `https://images.ygoprodeck.com/images/cards_cropped/${id}.jpg`;
+      const CARDS = [
+        {
+          id: 14558127,
+          name: "Ash Blossom & Joyous Spring",
+          k: "effect",
+          g: ["monster", "hand"],
+          type: "Zombie / Tuner / Effect · Level 3 · FIRE",
+          atk: 0,
+          def: 1800,
+          text: "Discard from hand when an effect would add from the Deck to the hand, special summon from the Deck, or send from the Deck to the GY: negate that effect.",
+          tip: "Best on the opponent's first search. Do not spend it on a card they can play around.",
+        },
+        {
+          id: 23434538,
+          name: 'Maxx "C"',
+          k: "effect",
+          g: ["monster", "hand"],
+          type: "Insect / Effect · Level 2 · EARTH",
+          atk: 500,
+          def: 200,
+          text: "Quick effect: discard this card. This turn, each time your opponent special summons, draw 1 card.",
+          tip: "Play it before the combo starts: the earlier, the more they must stop or give you cards.",
+        },
+        {
+          id: 97268402,
+          name: "Effect Veiler",
+          k: "effect",
+          g: ["monster", "hand"],
+          type: "Spellcaster / Tuner / Effect · Level 1 · LIGHT",
+          atk: 0,
+          def: 0,
+          text: "During your opponent's Main Phase: discard this card, target 1 face-up effect monster your opponent controls; negate its effects until end of turn.",
+        },
+        {
+          id: 10045474,
+          name: "Infinite Impermanence",
+          k: "trap",
+          g: ["trap", "hand"],
+          type: "Normal Trap",
+          text: "Target 1 face-up monster your opponent controls; negate its effects this turn. Can be activated from the hand if you control no cards.",
+        },
+        {
+          id: 24224830,
+          name: "Called by the Grave",
+          k: "spell",
+          g: ["spell"],
+          type: "Quick-Play Spell",
+          text: "Banish 1 monster from your opponent's GY; until the end of the next turn, negate its effects and those of cards with the same name.",
+        },
+        {
+          id: 84211599,
+          name: "Pot of Prosperity",
+          k: "spell",
+          g: ["spell"],
+          type: "Normal Spell",
+          text: "Banish 3 or 6 face-down cards from your Extra Deck; excavate that many from the Deck, add 1 to your hand.",
+        },
+        {
+          id: 84815190,
+          name: "Baronne de Fleur",
+          k: "synchro",
+          g: ["monster", "extra"],
+          type: "Wyrm / Synchro / Effect · Level 10 · WIND",
+          atk: 3000,
+          def: 2400,
+          text: "Once per turn: negate the activation of a card or effect and destroy it.",
+        },
+        {
+          id: 4280258,
+          name: "Apollousa, Bow of the Goddess",
+          k: "link",
+          g: ["monster", "extra"],
+          type: "Fairy / Link / Effect · Link 4 · WIND",
+          atk: 3200,
+          link: 4,
+          text: "ATK is 800 per Link Material. Once per chain, negate an opponent's monster effect and lose 800 ATK.",
+        },
+        {
+          id: 89631139,
+          name: "Blue-Eyes White Dragon",
+          k: "normal",
+          g: ["monster"],
+          type: "Dragon / Normal · Level 8 · LIGHT",
+          atk: 3000,
+          def: 2500,
+          text: "This legendary dragon is a powerful engine of destruction.",
+        },
+        {
+          id: 38033121,
+          name: "Dark Magician Girl",
+          k: "effect",
+          g: ["monster"],
+          type: "Spellcaster / Effect · Level 6 · DARK",
+          atk: 2000,
+          def: 1700,
+          text: "Gains 300 ATK for every Dark Magician or Magician of Black Chaos in either GY.",
+        },
+        {
+          id: 46986414,
+          name: "Dark Magician",
+          k: "normal",
+          g: ["monster"],
+          type: "Spellcaster / Normal · Level 7 · DARK",
+          atk: 2500,
+          def: 2100,
+          text: "The ultimate wizard in terms of attack and defense.",
+        },
+        {
+          id: 26077387,
+          name: "Sky Striker Ace - Raye",
+          k: "effect",
+          g: ["monster"],
+          type: "Machine / Effect · Level 4 · DARK",
+          atk: 1500,
+          def: 1500,
+          text: "Quick effect: tribute this card to special summon a Sky Striker Ace Link monster from the Extra Deck.",
+        },
+      ];
+      let filter = "all",
+        picked = 0;
+      const img = (id) =>
+        `<img src="${IMG(id)}" alt="" onerror="this.remove()">`;
+
+      function render() {
+        const q = document.getElementById("q").value.toLowerCase();
+        const list = CARDS.map((c, i) => [c, i]).filter(
+          ([c]) =>
+            (filter === "all" || c.g.includes(filter)) &&
+            c.name.toLowerCase().includes(q),
+        );
+        document.getElementById("count").textContent = `${list.length} cards`;
+        document.getElementById("results").innerHTML = list
+          .map(
+            ([c, i]) => `
+    <button class="tile k-${c.k}" data-i="${i}" aria-pressed="${i === picked}">
+      <div class="pic art">${img(c.id)}${c.g.includes("hand") ? '<span class="tag">HANDTRAP</span>' : ""}</div>
+      <div class="nm">${c.name}</div><div class="sub">${c.type.split(" · ")[0]}</div>
+    </button>`,
+          )
+          .join("");
+      }
+      function detail(i) {
+        picked = i;
+        const c = CARDS[i];
+        const stats = c.link
+          ? `<span>ATK ${c.atk}</span><span>LINK-${c.link}</span>`
+          : c.atk !== undefined
+            ? `<span>ATK ${c.atk}</span><span>DEF ${c.def}</span>`
+            : "";
+        document.getElementById("detail").innerHTML = `
+    <div class="big art k-${c.k}">${img(c.id)}</div>
+    <h2 class="h">${c.name}</h2><div class="type">${c.type}</div>
+    <div class="stats">${stats}</div>
+    <p class="text">${c.text}</p>
+    ${c.tip ? `<div class="coach"><b>Coach</b>${c.tip}</div>` : ""}`;
+        render();
+      }
+      document.getElementById("results").addEventListener("click", (e) => {
+        const t = e.target.closest(".tile");
+        if (t) detail(+t.dataset.i);
+      });
+      document.getElementById("q").addEventListener("input", render);
+      document.getElementById("chips").addEventListener("click", (e) => {
+        const b = e.target.closest(".chip");
+        if (!b) return;
+        filter = b.dataset.f;
+        document
+          .querySelectorAll(".chip")
+          .forEach((x) => x.setAttribute("aria-pressed", x === b));
+        render();
+      });
+      document
+        .querySelectorAll(".lang button")
+        .forEach(
+          (b) =>
+            (b.onclick = () =>
+              document
+                .querySelectorAll(".lang button")
+                .forEach((x) => x.setAttribute("aria-pressed", x === b))),
+        );
+      detail(0);
+    </script>
+  </body>
+</html>
