@@ -7,10 +7,14 @@ import { beforeEach, describe, expect, it } from "vitest";
 const script = join(__dirname, "check-identity.sh");
 const identity = join(__dirname, "..", ".identity");
 
+// Git hooks export GIT_DIR and friends (worktrees especially); drop them so
+// every git call below targets the temp repo, not the one being pushed.
+const cleanEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
+);
+
 function run(repo: string, env: Record<string, string> = {}) {
-  const base = { ...process.env };
-  delete base.GIT_AUTHOR_EMAIL;
-  delete base.GIT_COMMITTER_EMAIL;
+  const base = { ...cleanEnv };
   return spawnSync("sh", [join(repo, "scripts", "check-identity.sh")], {
     cwd: repo,
     env: { ...base, ...env },
@@ -20,7 +24,8 @@ function run(repo: string, env: Record<string, string> = {}) {
 
 describe("check-identity.sh", () => {
   let repo: string;
-  const git = (...args: string[]) => execFileSync("git", args, { cwd: repo });
+  const git = (...args: string[]) =>
+    execFileSync("git", args, { cwd: repo, env: cleanEnv });
 
   beforeEach(() => {
     repo = mkdtempSync(join(tmpdir(), "ygo-identity-"));
