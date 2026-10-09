@@ -605,6 +605,16 @@ legend {
   max-height: 42%;
   transform: translateX(-50%);
 }
+.prompt--folded {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: auto;
+  padding: 8px 10px 8px 16px;
+}
+.prompt--folded h3 {
+  margin: 0;
+}
 .prompt--dialog {
   top: 50%;
   width: min(760px, 92%);

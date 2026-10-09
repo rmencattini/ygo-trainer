@@ -111,6 +111,9 @@ export function PromptPanel(props: {
   prompt: Message;
   ctx: PromptContext;
   respond: PromptProps<Message>["respond"];
+  /** Show only the title and a way back to the actions (choice prompts only). */
+  folded?: boolean;
+  onUnfold?: () => void;
 }) {
   const title =
     props.ctx.hint ?? TITLES[props.prompt.type as MessageType] ?? "Choose";
@@ -136,6 +139,19 @@ export function PromptPanel(props: {
       <div className="prompt prompt--dialog" role="dialog" aria-label={title}>
         {content}
       </div>
+    );
+  }
+  if (props.folded) {
+    return (
+      <section
+        className="prompt prompt--dock prompt--folded"
+        aria-label="Prompt"
+      >
+        <h3>{title}</h3>
+        <button type="button" onClick={props.onUnfold}>
+          Show actions
+        </button>
+      </section>
     );
   }
   return (

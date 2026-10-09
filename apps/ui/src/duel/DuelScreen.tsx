@@ -89,6 +89,11 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
   const [focus, setFocus] = useState<CardRef | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
   const [flat, setFlat] = useState(loadFlat);
+  // Clicking the table outside a card folds the prompt; a card or a new prompt opens it.
+  const [foldedFor, setFoldedFor] = useState<Message | null>(null);
+  const folded = foldedFor !== null && foldedFor === session.prompt;
+  const setFolded = (fold: boolean) =>
+    setFoldedFor(fold ? session.prompt : null);
   const logEnd = useRef<HTMLLIElement>(null);
   const readCard = useMemo(
     () => engineSources(catalog, new Map()).readCard,
@@ -158,7 +163,15 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
           <p className="duel__hint">Hover a card to read it.</p>
         )}
       </aside>
-      <section className="duel__table" aria-label="Duel table">
+      <section
+        className="duel__table"
+        aria-label="Duel table"
+        onClick={(e) => {
+          if ((e.target as Element).closest("button, select, .prompt")) return;
+          setFocus(null);
+          setFolded(true);
+        }}
+      >
         <p className="duel__phase">
           <span>Turn {board.turn}</span> ·{" "}
           <span>
@@ -175,14 +188,21 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
             images={images}
             selectable={promptCards(session.prompt)}
             focus={focus}
-            onFocus={(card) =>
-              setFocus(focus && cardKey(focus) === cardKey(card) ? null : card)
-            }
+            onFocus={(card) => {
+              setFocus(focus && cardKey(focus) === cardKey(card) ? null : card);
+              setFolded(false);
+            }}
             onHover={setHovered}
           />
         </div>
         {session.prompt && (
-          <PromptPanel prompt={session.prompt} ctx={ctx} respond={respond} />
+          <PromptPanel
+            prompt={session.prompt}
+            ctx={ctx}
+            respond={respond}
+            folded={folded}
+            onUnfold={() => setFolded(false)}
+          />
         )}
         <button
           type="button"
