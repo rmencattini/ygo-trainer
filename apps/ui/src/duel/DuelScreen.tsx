@@ -113,37 +113,53 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
 
   return (
     <div className="duel">
-      <div className="duel__main">
-        <div className="duel__status">
-          <p>
-            Turn {board.turn} · {whose} {PHASE_NAMES[board.phase] ?? ""}
-          </p>
-          <select
-            aria-label="Card text language"
-            value={lang}
-            onChange={(e) => setLang(e.target.value as Lang)}
-          >
-            {catalog.languages().map((l) => (
-              <option key={l} value={l}>
-                {LANG_NAMES[l]}
-              </option>
-            ))}
-          </select>
+      <aside className="duel__details" aria-label="Card details">
+        <select
+          aria-label="Card text language"
+          value={lang}
+          onChange={(e) => setLang(e.target.value as Lang)}
+        >
+          {catalog.languages().map((l) => (
+            <option key={l} value={l}>
+              {LANG_NAMES[l]}
+            </option>
+          ))}
+        </select>
+        {hovered ? (
+          <div className="duel__card">
+            {images && (
+              <CardImage code={hovered} name={name(hovered)} images={images} />
+            )}
+            <CardDetails catalog={catalog} code={hovered} lang={lang} />
+          </div>
+        ) : (
+          <p className="duel__hint">Hover a card to read it.</p>
+        )}
+      </aside>
+      <section className="duel__table" aria-label="Duel table">
+        <p className="duel__phase">
+          <span>Turn {board.turn}</span> ·{" "}
+          <span>
+            {whose} {PHASE_NAMES[board.phase] ?? ""}
+          </span>
+        </p>
+        {/* Only the board scrolls, so the corner plates never cover it. */}
+        <div className="duel__board">
+          <Board
+            board={board}
+            me={session.human}
+            name={name}
+            images={images}
+            selectable={promptCards(session.prompt)}
+            focus={focus}
+            onFocus={(card) =>
+              setFocus(focus && cardKey(focus) === cardKey(card) ? null : card)
+            }
+            onHover={setHovered}
+          />
         </div>
-        <Board
-          board={board}
-          me={session.human}
-          name={name}
-          images={images}
-          selectable={promptCards(session.prompt)}
-          focus={focus}
-          onFocus={(card) =>
-            setFocus(focus && cardKey(focus) === cardKey(card) ? null : card)
-          }
-          onHover={setHovered}
-        />
-      </div>
-      <aside className="duel__side">
+      </section>
+      <aside className="duel__side" aria-label="Prompts and log">
         {session.ended && (
           <p className="duel__result" role="status">
             {session.winner === session.human
@@ -156,22 +172,7 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
         {session.prompt && (
           <PromptPanel prompt={session.prompt} ctx={ctx} respond={respond} />
         )}
-        <aside className="duel__details" aria-label="Card details">
-          {hovered ? (
-            <div className="duel__card">
-              {images && (
-                <CardImage
-                  code={hovered}
-                  name={name(hovered)}
-                  images={images}
-                />
-              )}
-              <CardDetails catalog={catalog} code={hovered} lang={lang} />
-            </div>
-          ) : (
-            <p>Hover a card to read it.</p>
-          )}
-        </aside>
+        <h2 className="duel__log-title">Duel log</h2>
         <ol className="duel__log" role="log" aria-label="Duel log">
           {session.lines.map((line, i) => (
             <li

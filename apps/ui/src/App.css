@@ -150,7 +150,7 @@ legend {
 
 /* Navigation */
 .app--wide {
-  max-width: 1400px;
+  max-width: none;
 }
 .app__bar {
   display: flex;
@@ -175,49 +175,173 @@ legend {
   margin-left: auto;
 }
 
-/* Duel */
-.duel {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(260px, 1fr);
-  align-items: start;
-  gap: 16px;
-}
-.duel__status {
+/* Duel: full height, card text | table | prompts and log */
+.app--wide:has(.duel-launcher) {
+  height: 100vh;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin: 0 0 8px;
-  font-weight: 600;
+  flex-direction: column;
+  padding-bottom: 0;
 }
-.duel__status p {
-  margin: 0;
+.app--wide:has(.duel-launcher) .app__bar {
+  margin-bottom: 0;
 }
-.duel__card .card-image {
-  display: block;
-  width: 160px;
-  margin-bottom: 8px;
+.duel-launcher {
+  --details-width: 280px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
 }
+.duel-launcher__leave {
+  position: absolute;
+  z-index: 4;
+  top: 12px;
+  left: calc(var(--details-width) + 12px);
+}
+.duel {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--details-width) minmax(0, 1fr) 300px;
+  margin: 0 -16px;
+}
+.duel__details,
 .duel__side {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-/* Fixed height: hovering cards with longer text must not push the log or the page. */
-.duel__details {
-  height: 440px;
+  min-height: 0;
+  padding: 14px;
   overflow-y: auto;
+  background: var(--panel);
+}
+.duel__details {
+  border-right: 1px solid var(--line);
+}
+.duel__details select {
+  align-self: flex-start;
+}
+.duel__card .card-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-bottom: 8px;
+  border-radius: 6px;
+}
+.duel__hint {
+  color: var(--muted);
+}
+.duel__table {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 64px 140px 72px 16px;
+  overflow: hidden;
+}
+/* Not positioned: the plates and badge anchor to .duel__table, outside this scroll box. */
+.duel__board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: safe center;
+  overflow: auto;
+}
+.duel__phase {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  width: 108px;
+  height: 108px;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-family: var(--title);
+  font-size: 12px;
+  line-height: 1.15;
+  background: radial-gradient(circle at 40% 35%, #3a3f46, #0f1216 70%);
+  border: 5px solid var(--gold);
+  box-shadow:
+    0 0 0 2px #6b5520,
+    0 8px 24px rgb(0 0 0 / 60%);
+}
+.duel__phase span:first-child {
+  color: var(--gold);
+}
+.duel__phase span:last-child {
+  font-size: 13px;
+  font-weight: 800;
+}
+.lp-plate {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: var(--radius);
+  background: linear-gradient(90deg, rgb(8 10 14 / 95%), rgb(8 10 14 / 75%));
+}
+.lp-plate--theirs {
+  top: 10px;
+  right: 16px;
+  border-top: 3px solid var(--theirs);
+}
+.lp-plate--mine {
+  bottom: 12px;
+  left: 16px;
+  border-top: 3px solid var(--mine);
+}
+.lp-plate__who {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #485563, #29323c);
+  border: 2px solid var(--gold);
+}
+.lp-plate__lp {
+  font-family: var(--title);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+.duel__side {
+  border-left: 1px solid var(--line);
+}
+.duel__log-title {
+  margin: 6px 0 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 .duel__log {
-  max-height: 260px;
-  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
   margin: 0;
-  padding-left: 24px;
-  font-size: 0.9em;
+  padding-left: 22px;
+  overflow-y: auto;
+  font-size: 13px;
 }
 .duel__result {
-  font-size: 1.4em;
-  font-weight: bold;
+  margin: 0;
+  font-family: var(--title);
+  font-size: 1.6em;
+  font-weight: 800;
+  color: var(--gold);
 }
 .board {
   display: flex;
@@ -356,6 +480,9 @@ legend {
   outline: 2px solid #2d8cf0;
 }
 @media (max-width: 900px) {
+  .app--wide:has(.duel-launcher) {
+    height: auto;
+  }
   .duel {
     grid-template-columns: 1fr;
   }

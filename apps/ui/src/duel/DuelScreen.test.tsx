@@ -140,4 +140,38 @@ describe("DuelScreen", () => {
       ).findByRole("img", { name }),
     ).toHaveAttribute("src", "blob:art");
   });
+
+  describe("layout", () => {
+    it("puts card text, the table and the log side by side, in that order", async () => {
+      await setup();
+      const details = screen.getByRole("complementary", {
+        name: "Card details",
+      });
+      const table = screen.getByRole("region", { name: "Duel table" });
+      const log = screen.getByRole("log");
+      const after = (a: Node, b: Node) =>
+        (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0;
+      expect(after(details, table)).toBe(true);
+      expect(after(table, log)).toBe(true);
+      expect(
+        within(table).getByRole("region", { name: "Your field" }),
+      ).toBeInTheDocument();
+    });
+
+    it("shows each player's life points on a named plate", async () => {
+      await setup();
+      const mine = screen.getByLabelText("Your life points");
+      expect(mine).toHaveTextContent("You");
+      expect(mine).toHaveTextContent("LP 8000");
+      const theirs = screen.getByLabelText("Opponent's life points");
+      expect(theirs).toHaveTextContent("AI");
+      expect(theirs).toHaveTextContent("LP 8000");
+    });
+
+    it("shows the turn and phase together in the phase badge", async () => {
+      await setup();
+      const badge = screen.getByText("Turn 1").closest(".duel__phase");
+      expect(badge).toHaveTextContent(/^Turn 1 · (Your|Opponent's) \w+/);
+    });
+  });
 });

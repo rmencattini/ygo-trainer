@@ -94,8 +94,12 @@ export function DuelLauncher({
 
   if (duel) {
     return (
-      <div>
-        <button type="button" onClick={() => setDuel(null)}>
+      <div className="duel-launcher">
+        <button
+          type="button"
+          className="duel-launcher__leave"
+          onClick={() => setDuel(null)}
+        >
           Leave duel
         </button>
         <DuelScreen

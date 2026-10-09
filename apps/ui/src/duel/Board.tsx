@@ -134,7 +134,14 @@ function Side({
       aria-label={mine ? "Your field" : "Opponent's field"}
     >
       <div className="side__info">
-        <strong>LP {side.lp}</strong>
+        <div
+          className={`lp-plate lp-plate--${mine ? "mine" : "theirs"}`}
+          role="group"
+          aria-label={mine ? "Your life points" : "Opponent's life points"}
+        >
+          <span className="lp-plate__who">{mine ? "You" : "AI"}</span>
+          <strong className="lp-plate__lp">LP {side.lp}</strong>
+        </div>
         <div className="pile">Deck {side.deck}</div>
         <Pile label="GY" cards={side.grave} name={rest.name} />
         <Pile label="Banished" cards={side.banished} name={rest.name} />
