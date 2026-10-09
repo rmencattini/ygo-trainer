@@ -16,6 +16,8 @@ export interface PromptContext {
   hint: string | null;
   /** Card art for card picks; without it they show names only. */
   images?: ImageSource;
+  /** Show a card's text, as hovering it on the board does. */
+  hover?(code: number): void;
   /** The latest log line, so a chain question can say what it answers. */
   lastEvent?: string | null;
   /** Card clicked on the board: prompts show only its choices. */

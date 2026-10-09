@@ -34,11 +34,13 @@ function CardChoice(props: {
   disabled?: boolean;
   title?: string;
   onClick(): void;
+  onHover?(code: number): void;
 }) {
   return (
     <button
       type="button"
       className="pick"
+      onMouseEnter={() => props.onHover?.(props.code)}
       aria-label={props.label}
       aria-pressed={props.pressed}
       disabled={props.disabled}
@@ -66,6 +68,7 @@ function PickList(props: {
   me: number;
   name(code: number): string;
   images?: ImageSource;
+  onHover?(code: number): void;
   locked?: number[];
 }) {
   return (
@@ -80,6 +83,7 @@ function PickList(props: {
             disabled={props.locked?.includes(i)}
             title={whereLabel(c.controller, c.location, props.me)}
             onClick={() => props.onToggle(i)}
+            onHover={props.onHover}
           />
         </li>
       ))}
@@ -133,6 +137,7 @@ export function SelectCardPrompt({
         me={ctx.me}
         name={ctx.name}
         images={ctx.images}
+        onHover={ctx.hover}
       />
       <ConfirmRow
         ok={ok}
@@ -177,6 +182,7 @@ export function TributePrompt({
         me={ctx.me}
         name={ctx.name}
         images={ctx.images}
+        onHover={ctx.hover}
       />
       <ConfirmRow
         ok={ok}
@@ -211,6 +217,7 @@ export function UnselectCardPrompt({
               code={c.code}
               label={`Pick ${ctx.name(c.code)}`}
               images={ctx.images}
+              onHover={ctx.hover}
               onClick={() => send(i)}
             />
           </li>
@@ -221,6 +228,7 @@ export function UnselectCardPrompt({
               code={c.code}
               label={`Drop ${ctx.name(c.code)}`}
               images={ctx.images}
+              onHover={ctx.hover}
               pressed
               onClick={() => send(prompt.select_cards.length + i)}
             />
@@ -320,6 +328,7 @@ export function SumPrompt({
         me={ctx.me}
         name={ctx.name}
         images={ctx.images}
+        onHover={ctx.hover}
       />
       <ConfirmRow
         ok={ok}

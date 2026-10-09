@@ -707,6 +707,11 @@ legend {
     0 0 0 100vmax rgb(0 0 0 / 45%),
     0 12px 30px rgb(0 0 0 / 60%);
 }
+.prompt__aside {
+  float: right;
+  margin-left: 12px;
+  font-size: 12px;
+}
 .prompt h3 {
   margin: 0 0 6px;
   font-size: 15px;

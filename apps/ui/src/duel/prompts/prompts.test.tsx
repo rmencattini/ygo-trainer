@@ -220,6 +220,43 @@ describe("SELECT_CARD", () => {
     );
   });
 
+  it("shows a card's text when you point at it", () => {
+    const hover = vi.fn();
+    show(prompt, { hover });
+    fireEvent.mouseEnter(screen.getByRole("button", { name: "Dragon" }));
+    expect(hover).toHaveBeenCalledWith(4);
+  });
+
+  it("can step aside to look at the board, then come back", () => {
+    const onFold = vi.fn();
+    render(
+      <PromptPanel
+        prompt={{ player: 0, ...prompt } as unknown as Message}
+        ctx={ctx}
+        respond={vi.fn()}
+        onFold={onFold}
+      />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Look at the board" }));
+    expect(onFold).toHaveBeenCalled();
+  });
+
+  it("folds to a bar that brings the cards back", () => {
+    const onUnfold = vi.fn();
+    render(
+      <PromptPanel
+        prompt={{ player: 0, ...prompt } as unknown as Message}
+        ctx={ctx}
+        respond={vi.fn()}
+        folded
+        onUnfold={onUnfold}
+      />,
+    );
+    expect(screen.queryByRole("button", { name: "Warwolf" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Show cards" }));
+    expect(onUnfold).toHaveBeenCalled();
+  });
+
   it("uses the hint as the title", () => {
     show(prompt, { hint: "Select the card(s) to add to your hand" });
     expect(

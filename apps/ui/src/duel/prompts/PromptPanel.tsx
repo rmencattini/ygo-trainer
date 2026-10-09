@@ -111,9 +111,11 @@ export function PromptPanel(props: {
   prompt: Message;
   ctx: PromptContext;
   respond: PromptProps<Message>["respond"];
-  /** Show only the title and a way back to the actions (choice prompts only). */
+  /** Show only the title and a way back to the choices. */
   folded?: boolean;
   onUnfold?: () => void;
+  /** Step aside from a card pick to look at the board. */
+  onFold?: () => void;
 }) {
   const title =
     props.ctx.hint ?? TITLES[props.prompt.type as MessageType] ?? "Choose";
@@ -134,13 +136,7 @@ export function PromptPanel(props: {
       </div>
     </>
   );
-  if (PICKS.has(props.prompt.type)) {
-    return (
-      <div className="prompt prompt--dialog" role="dialog" aria-label={title}>
-        {content}
-      </div>
-    );
-  }
+  const pick = PICKS.has(props.prompt.type);
   if (props.folded) {
     return (
       <section
@@ -149,9 +145,25 @@ export function PromptPanel(props: {
       >
         <h3>{title}</h3>
         <button type="button" onClick={props.onUnfold}>
-          Show actions
+          {pick ? "Show cards" : "Show actions"}
         </button>
       </section>
+    );
+  }
+  if (pick) {
+    return (
+      <div className="prompt prompt--dialog" role="dialog" aria-label={title}>
+        {props.onFold && (
+          <button
+            type="button"
+            className="prompt__aside"
+            onClick={props.onFold}
+          >
+            Look at the board
+          </button>
+        )}
+        {content}
+      </div>
     );
   }
   return (

@@ -123,6 +123,7 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
     describe: (d) => describeEffect(d, texts),
     hint: session.hint === null ? null : describeEffect(session.hint, texts),
     images,
+    hover: setHovered,
     lastEvent: session.lines.at(-1) ?? null,
     focus,
     announceCandidates: (opcodes, query) =>
@@ -202,6 +203,7 @@ export function DuelScreen({ session, catalog, texts, images }: Props) {
             respond={respond}
             folded={folded}
             onUnfold={() => setFolded(false)}
+            onFold={() => setFolded(true)}
           />
         )}
         <button
