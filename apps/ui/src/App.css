@@ -1,13 +1,93 @@
 :root {
-  font-family: system-ui, sans-serif;
-  color-scheme: light dark;
+  /* Arena theme: dark stone, gold trim, blue for your side, red for the AI's. */
+  --ink: #e9edf2;
+  --muted: #9aa4b0;
+  --gold: #d9b45f;
+  --gold-deep: #b38c34;
+  --gold-ink: #1b1406;
+  --panel: rgb(12 16 20 / 82%);
+  --raised: #232931;
+  --line: rgb(217 180 95 / 35%);
+  --mine: #3a7bea;
+  --theirs: #d33;
+  --glow: #5fd3ff;
+  --stone: #a9adb2;
+  --title: Cinzel, Georgia, serif;
+  --radius: 8px;
+
+  font-family: Inter, system-ui, sans-serif;
+  color: var(--ink);
+  color-scheme: dark;
+  background: radial-gradient(
+      ellipse at 50% 30%,
+      #3b4249 0%,
+      #1a1f24 55%,
+      #0d1013 100%
+    )
+    fixed;
   /* Keep the scrollbar's space so the layout does not shift when it appears. */
   scrollbar-gutter: stable;
+}
+body {
+  margin: 0;
 }
 .app {
   max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0 16px 16px;
+}
+
+/* Form controls: one look everywhere instead of browser defaults. */
+button,
+select,
+input {
+  font: inherit;
+  color: inherit;
+}
+button,
+select {
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--raised);
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button[aria-pressed="true"],
+button[type="submit"] {
+  background: linear-gradient(180deg, #e8c46d, var(--gold-deep));
+  color: var(--gold-ink);
+  border-color: var(--gold);
+  font-weight: 700;
+}
+input[type="search"],
+input[type="text"],
+input:not([type]) {
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+a {
+  color: var(--gold);
+}
+h1,
+h2,
+h3,
+legend {
+  font-family: var(--title);
+  color: var(--gold);
+  letter-spacing: 0.04em;
 }
 .card-viewer__controls {
   display: flex;
@@ -72,13 +152,27 @@
 .app--wide {
   max-width: 1400px;
 }
+.app__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+.app__bar h1 {
+  margin: 0;
+  font-size: 22px;
+}
+.app__tagline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
 .app__nav {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
-}
-.app__nav button[aria-pressed="true"] {
-  font-weight: bold;
+  margin-left: auto;
 }
 
 /* Duel */

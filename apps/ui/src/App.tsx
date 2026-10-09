@@ -20,13 +20,16 @@ function App() {
   }, []);
 
   return (
-    <main className={`app ${view === "duel" ? "app--wide" : ""}`}>
-      <h1>YGO Trainer</h1>
-      <p>Practice turn-1 combos and handtrap situations.</p>
-      {error && <p role="alert">{error}</p>}
-      {!error && !cards && <p>Loading cards…</p>}
-      {cards && (
-        <>
+    <main
+      className={`app ${view === "duel" ? "app--wide" : ""}`}
+      data-theme="arena"
+    >
+      <header className="app__bar">
+        <h1>YGO Trainer</h1>
+        <p className="app__tagline">
+          Practice turn-1 combos and handtrap situations.
+        </p>
+        {cards && (
           <nav className="app__nav">
             <button
               type="button"
@@ -43,13 +46,16 @@ function App() {
               Card viewer
             </button>
           </nav>
-          {view === "duel" ? (
-            <DuelLauncher catalog={cards.catalog} images={cards.images} />
-          ) : (
-            <CardViewer catalog={cards.catalog} images={cards.images} />
-          )}
-        </>
-      )}
+        )}
+      </header>
+      {error && <p role="alert">{error}</p>}
+      {!error && !cards && <p>Loading cards…</p>}
+      {cards &&
+        (view === "duel" ? (
+          <DuelLauncher catalog={cards.catalog} images={cards.images} />
+        ) : (
+          <CardViewer catalog={cards.catalog} images={cards.images} />
+        ))}
     </main>
   );
 }
