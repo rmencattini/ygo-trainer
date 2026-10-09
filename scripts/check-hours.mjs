@@ -1,6 +1,8 @@
 // Blocks commits during Swiss working hours: Mon-Fri 08:00-18:00 Europe/Zurich,
-// except on Swiss public holidays. Commit times stay real; this only decides when
-// a commit may happen.
+// except on Swiss public holidays and your own days off (`.days-off`, gitignored).
+// Commit times stay real; this only decides when a commit may happen.
+import { existsSync, readFileSync } from "node:fs";
+
 const TZ = "Europe/Zurich";
 
 export function zurichParts(date) {
@@ -63,19 +65,33 @@ export function swissHolidays(year) {
   ]);
 }
 
-export function isWorkingTime(date) {
+/** Dates (YYYY-MM-DD) from a `.days-off` file: one per line, `#` starts a comment. */
+export function parseDaysOff(text) {
+  return new Set(
+    text
+      .split(/\r?\n/)
+      .map((line) => line.replace(/#.*/, "").trim())
+      .filter((line) => /^\d{4}-\d{2}-\d{2}$/.test(line)),
+  );
+}
+
+export function isWorkingTime(date, daysOff = new Set()) {
   const p = zurichParts(date);
   if (p.weekday === "Sat" || p.weekday === "Sun") return false;
-  if (swissHolidays(p.year).has(p.ymd)) return false;
+  if (swissHolidays(p.year).has(p.ymd) || daysOff.has(p.ymd)) return false;
   return p.minutes >= 8 * 60 && p.minutes < 18 * 60;
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const now = new Date();
-  if (isWorkingTime(now)) {
+  const file = new URL("../.days-off", import.meta.url);
+  const daysOff = existsSync(file)
+    ? parseDaysOff(readFileSync(file, "utf8"))
+    : new Set();
+  if (isWorkingTime(now, daysOff)) {
     const p = zurichParts(now);
     console.error(
-      `commit blocked: ${p.weekday} ${p.ymd} is Swiss working time (Mon-Fri 08:00-18:00 Europe/Zurich). Commit after 18:00.`,
+      `commit blocked: ${p.weekday} ${p.ymd} is Swiss working time (Mon-Fri 08:00-18:00 Europe/Zurich). Commit after 18:00, or add the date to .days-off.`,
     );
     process.exit(1);
   }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isWorkingTime, swissHolidays } from "./check-hours.mjs";
+import { isWorkingTime, parseDaysOff, swissHolidays } from "./check-hours.mjs";
 
 // Times in UTC; Zurich is UTC+2 in summer (CEST), UTC+1 in winter (CET).
 describe("isWorkingTime", () => {
@@ -25,6 +25,21 @@ describe("isWorkingTime", () => {
     expect(isWorkingTime(new Date("2026-08-01T10:00:00Z"))).toBe(false); // Sat anyway
     expect(isWorkingTime(new Date("2027-08-02T10:00:00Z"))).toBe(true); // Mon after
     expect(isWorkingTime(new Date("2026-12-25T10:00:00Z"))).toBe(false); // Fri, Christmas
+  });
+  it("allows your own days off", () => {
+    const daysOff = new Set(["2026-10-09"]);
+    expect(isWorkingTime(new Date("2026-10-09T08:00:00Z"), daysOff)).toBe(
+      false,
+    );
+    expect(isWorkingTime(new Date("2026-10-08T08:00:00Z"), daysOff)).toBe(true);
+  });
+});
+
+describe("parseDaysOff", () => {
+  it("reads one date per line, skipping blanks and # comments", () => {
+    const text =
+      "# holidays\n2026-10-09\n\n  2026-10-12  # long weekend\nnot a date\n";
+    expect([...parseDaysOff(text)]).toEqual(["2026-10-09", "2026-10-12"]);
   });
 });
 
