@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Setup Screen Revamp</title>
+    <link rel="stylesheet" href="ux.css" />
+    <style>
+      .wrap {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px 20px 40px;
+      }
+      .title {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+      .title .h {
+        font-size: 26px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 260px 1fr;
+        gap: 20px;
+        align-items: start;
+      }
+
+      .side {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .side.me {
+        border-top: 3px solid #3a7bea;
+      }
+      .side.ai {
+        border-top: 3px solid #d33;
+      }
+      .who {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .av {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        background: var(--tile);
+        border: 2px solid var(--accent);
+      }
+      .who .h {
+        font-size: 16px;
+      }
+
+      .hero {
+        position: relative;
+        height: 150px;
+        border-radius: var(--radius);
+      }
+      .hero .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.85),
+          rgba(0, 0, 0, 0.1) 60%
+        );
+      }
+      .hero .info {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 12px;
+      }
+      .hero .name {
+        font-family: var(--head);
+        font-size: 20px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .hero .meta {
+        font-size: 12px;
+        color: #d6dde5;
+        display: flex;
+        gap: 12px;
+        margin-top: 4px;
+      }
+      .hero .meta a {
+        color: var(--accent);
+      }
+
+      .decks {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .deck {
+        position: relative;
+        height: 74px;
+        border-radius: var(--radius);
+        cursor: pointer;
+        border: 2px solid transparent;
+        padding: 0;
+        text-align: left;
+      }
+      .deck .shade {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          0deg,
+          rgba(0, 0, 0, 0.85),
+          rgba(0, 0, 0, 0) 70%
+        );
+      }
+      .deck span {
+        position: absolute;
+        left: 7px;
+        right: 7px;
+        bottom: 5px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.15;
+      }
+      .deck[aria-pressed="true"] {
+        border-color: var(--accent);
+        box-shadow: 0 0 14px var(--accent);
+      }
+      .deck.import {
+        background: var(--tile);
+        border: 2px dashed var(--line);
+        display: grid;
+        place-items: center;
+        color: var(--muted);
+        font-size: 12px;
+        text-align: center;
+      }
+
+      .warn {
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: var(--radius);
+        background: rgba(255, 170, 40, 0.1);
+        border: 1px solid rgba(255, 170, 40, 0.4);
+        color: #ffcf8a;
+      }
+
+      .mid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+        padding-top: 30px;
+      }
+      .vs {
+        font-family: var(--head);
+        font-size: 54px;
+        font-weight: 800;
+        color: var(--accent);
+        line-height: 1;
+      }
+      body[data-theme="holo"] .vs {
+        text-shadow: 0 0 20px var(--accent);
+      }
+      .seg {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+        padding: 4px;
+        gap: 4px;
+        border-radius: calc(var(--radius) + 4px);
+      }
+      .seg button {
+        border: 0;
+        padding: 12px 6px;
+        border-radius: var(--radius);
+        background: transparent;
+        cursor: pointer;
+        font-weight: 700;
+        color: var(--muted);
+      }
+      .seg button small {
+        display: block;
+        font-weight: 400;
+        font-size: 11px;
+        margin-top: 2px;
+      }
+      .seg button[aria-pressed="true"] {
+        background: var(--btn);
+        color: var(--accent-ink);
+      }
+      .mid .label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+      .drill {
+        width: 100%;
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .drill label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 6px;
+      }
+      .tag {
+        font-size: 10px;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 3px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        vertical-align: 1px;
+      }
+
+      .import-box {
+        display: none;
+        margin-top: 4px;
+        padding: 14px;
+        border: 2px dashed var(--line);
+        border-radius: var(--radius);
+        text-align: center;
+        font-size: 13px;
+      }
+      .import-box.open {
+        display: block;
+      }
+      .import-box .row {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .import-box input {
+        flex: 1;
+        background: var(--tile);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 8px 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="title">
+        <h1 class="h">New duel</h1>
+        <span class="muted"
+          >Pick both decks and who starts. The AI plays the other side.</span
+        >
+      </div>
+
+      <div class="grid">
+        <section class="panel side me" data-side="me">
+          <div class="who">
+            <div class="av">RM</div>
+            <div>
+              <div class="h">You</div>
+              <div class="muted" style="font-size: 12px">Your deck</div>
+            </div>
+          </div>
+          <div class="hero art"></div>
+          <div class="decks"></div>
+          <div class="import-box">
+            Drop a <b>.ydk</b> file here, or paste a link
+            <div class="row">
+              <input
+                placeholder="ydke://… or https://ygoprodeck.com/deck/…"
+              /><button class="btn">Import</button>
+            </div>
+          </div>
+        </section>
+
+        <div class="mid">
+          <div class="vs">VS</div>
+          <div class="label">Who goes first</div>
+          <div class="seg panel" id="first">
+            <button aria-pressed="true">
+              I go first<small>Practise your combo</small>
+            </button>
+            <button aria-pressed="false">
+              I go second<small>Practise handtraps</small>
+            </button>
+          </div>
+          <div class="panel drill">
+            <span class="tag">IDEA</span> <b>Drill mode</b><br />
+            <span class="muted"
+              >Replay the same opening hands to train one line.</span
+            >
+            <label><input type="checkbox" /> Fixed seed</label>
+            <label><input type="checkbox" checked /> Coach tips on</label>
+          </div>
+          <button class="btn big">Start duel</button>
+        </div>
+
+        <section class="panel side ai" data-side="ai">
+          <div class="who">
+            <div class="av">AI</div>
+            <div>
+              <div class="h">AI opponent</div>
+              <div class="muted" style="font-size: 12px">Opponent's deck</div>
+            </div>
+          </div>
+          <div class="hero art"></div>
+          <div class="decks"></div>
+          <div class="warn">
+            2 cards from this list are missing in the card database and will be
+            skipped: <b>Example Card A</b>, <b>Example Card B</b>.
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="ux.js"></script>
+    <script>
+      const IMG = (id) =>
+        `https://images.ygoprodeck.com/images/cards_cropped/${id}.jpg`;
+      // cover ids are a best guess; a wrong id falls back to the gradient
+      const DECKS = [
+        {
+          name: "Azamina Mitsurugi Dark Magician",
+          cover: 46986414,
+          main: 40,
+          extra: 15,
+          side: 5,
+          src: "ygoprodeck.com/deck/…-736009",
+        },
+        {
+          name: "Blitzclique",
+          cover: 0,
+          main: 40,
+          extra: 15,
+          side: 15,
+          src: "ygoprodeck.com/deck/blitzclique-736703",
+        },
+        {
+          name: "Branded Light and Darkness Ritual",
+          cover: 68468459,
+          main: 41,
+          extra: 15,
+          side: 15,
+          src: "ygoprodeck.com/deck/…-735946",
+        },
+        {
+          name: "Elfnote",
+          cover: 0,
+          main: 40,
+          extra: 15,
+          side: 15,
+          src: "ygoprodeck.com/deck/elfnote-736322",
+        },
+        {
+          name: "Invoked",
+          cover: 86120751,
+          main: 40,
+          extra: 15,
+          side: 15,
+          src: "ygoprodeck.com/deck/invoked-735651",
+        },
+        {
+          name: "Sky Striker",
+          cover: 26077387,
+          main: 40,
+          extra: 15,
+          side: 15,
+          src: "ygoprodeck.com/deck/sky-striker-736306",
+        },
+      ];
+      const img = (id) =>
+        id ? `<img src="${IMG(id)}" alt="" onerror="this.remove()">` : "";
+
+      function side(el, pick) {
+        const hero = el.querySelector(".hero");
+        const grid = el.querySelector(".decks");
+        const show = (i) => {
+          const d = DECKS[i];
+          hero.innerHTML = `${img(d.cover)}<div class="shade"></div><div class="info"><div class="name">${d.name}</div>
+      <div class="meta"><span>Main ${d.main}</span><span>Extra ${d.extra}</span><span>Side ${d.side}</span><a href="#">${d.src}</a></div></div>`;
+          grid
+            .querySelectorAll(".deck:not(.import)")
+            .forEach((b, j) => b.setAttribute("aria-pressed", j === i));
+        };
+        grid.innerHTML =
+          DECKS.map(
+            (d) =>
+              `<button class="deck art">${img(d.cover)}<div class="shade"></div><span>${d.name}</span></button>`,
+          ).join("") +
+          (el.dataset.side === "me"
+            ? `<button class="deck import">+ Import<br>a deck</button>`
+            : "");
+        grid
+          .querySelectorAll(".deck:not(.import)")
+          .forEach((b, i) => (b.onclick = () => show(i)));
+        grid
+          .querySelector(".import")
+          ?.addEventListener("click", () =>
+            el.querySelector(".import-box").classList.toggle("open"),
+          );
+        show(pick);
+      }
+      side(document.querySelector('[data-side="me"]'), 0);
+      side(document.querySelector('[data-side="ai"]'), 5);
+
+      document
+        .querySelectorAll("#first button")
+        .forEach(
+          (b) =>
+            (b.onclick = () =>
+              document
+                .querySelectorAll("#first button")
+                .forEach((x) => x.setAttribute("aria-pressed", x === b))),
+        );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UX Revamp Findings</title>
+    <link rel="stylesheet" href="ux.css" />
+    <style>
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 28px 20px 60px;
+        line-height: 1.5;
+      }
+      h1.h {
+        font-size: 30px;
+      }
+      h2.h {
+        font-size: 19px;
+        margin: 36px 0 12px;
+      }
+      .lead {
+        color: var(--muted);
+        margin: 6px 0 0;
+      }
+      .status {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        padding: 2px 8px;
+        border-radius: 4px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        margin-left: 8px;
+        vertical-align: 6px;
+      }
+
+      .before {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .before figure {
+        margin: 0;
+        padding: 8px;
+      }
+      .before img {
+        width: 100%;
+        display: block;
+        border-radius: 4px;
+      }
+      .before figcaption {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 6px;
+      }
+
+      .groups {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+      .group {
+        padding: 14px 16px;
+      }
+      .group h3 {
+        margin: 0 0 6px;
+        font-size: 15px;
+      }
+      .group ul {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 14px;
+      }
+      .group li {
+        margin: 3px 0;
+      }
+
+      .looks {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .look {
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .look .sw {
+        height: 90px;
+      }
+      .look .body {
+        padding: 12px 14px;
+        font-size: 13px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .look h3 {
+        margin: 0;
+        font-size: 16px;
+      }
+      .look .eff {
+        font-weight: 700;
+      }
+      .look ul {
+        margin: 0;
+        padding-left: 16px;
+      }
+      .look a.btn {
+        text-align: center;
+        text-decoration: none;
+        margin-top: auto;
+      }
+      .sw-a {
+        background:
+          radial-gradient(ellipse at 50% 60%, #a9adb2 0 30%, transparent 31%),
+          radial-gradient(circle at 85% 50%, #d9b45f 0 9%, transparent 10%),
+          linear-gradient(180deg, #2a3036, #0d1013);
+      }
+      .sw-b {
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgba(80, 170, 255, 0.15) 0 1px,
+            transparent 1px 14px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(80, 170, 255, 0.15) 0 1px,
+            transparent 1px 14px
+          ),
+          radial-gradient(ellipse at 50% 60%, #0f3d82, #020816);
+      }
+      .sw-c {
+        background:
+          linear-gradient(90deg, #161a20 0 22%, #0f1216 22% 78%, #161a20 78%),
+          #0f1216;
+        position: relative;
+      }
+      .sw-c::after {
+        content: "";
+        position: absolute;
+        left: 30%;
+        right: 30%;
+        top: 20%;
+        bottom: 20%;
+        border: 1px dashed #343c47;
+        border-radius: 6px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      th {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      td a {
+        font-weight: 700;
+      }
+      .need {
+        padding: 14px 16px;
+        border-left: 4px solid var(--accent);
+      }
+      .need ol {
+        margin: 6px 0 0;
+        padding-left: 20px;
+      }
+      .need li {
+        margin: 4px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1 class="h">
+        UX revamp<span class="status">DRAFT · NOT DECIDED</span>
+      </h1>
+      <p class="lead">
+        Findings on today's screens, three looks to choose from, and clickable
+        mockups of every screen. Written 9 Oct 2026 on branch
+        <code>ux-revamp</code>. Switch the look with the A / B / C buttons at
+        the top: every page follows.
+      </p>
+
+      <h2 class="h">1. Today's screens</h2>
+      <div class="before">
+        <figure class="panel">
+          <img src="before/setup.jpg" alt="Current setup screen" />
+          <figcaption>
+            Setup: browser default form, one narrow column.
+          </figcaption>
+        </figure>
+        <figure class="panel">
+          <img
+            src="before/duel-chain.jpg"
+            alt="Current duel screen during a chain question"
+          />
+          <figcaption>Duel: turn 1, the game asks whether to chain.</figcaption>
+        </figure>
+      </div>
+
+      <h2 class="h">2. What makes it feel bare</h2>
+      <div class="groups">
+        <div class="panel group">
+          <h3>Look</h3>
+          <ul>
+            <li>
+              Browser default fonts, buttons and selects: reads as a debug page.
+            </li>
+            <li>
+              Light grey on grey, no colour to tell your side from the AI's.
+            </li>
+            <li>
+              Title and tagline stay on screen during the duel and eat height.
+            </li>
+          </ul>
+        </div>
+        <div class="panel group">
+          <h3>Board</h3>
+          <ul>
+            <li>
+              Cards are 50×66 px: art and ATK are hard to read; hand cards are
+              no larger than field cards.
+            </li>
+            <li>
+              Zones have no names; Deck, GY, Banished and Extra are text counts
+              in a side column, not piles on the field.
+            </li>
+            <li>
+              Life points and phase are small bold text; nothing shows the phase
+              sequence.
+            </li>
+          </ul>
+        </div>
+        <div class="panel group">
+          <h3>Prompts and feedback</h3>
+          <ul>
+            <li>
+              The chain question sits in the side column, far from the cards,
+              with long button labels.
+            </li>
+            <li>
+              The card you can respond with does not light up in your hand.
+            </li>
+            <li>
+              The AI's moves show only as log lines at the bottom right, under a
+              fixed empty "Hover a card" box: you scroll to see what happened.
+            </li>
+            <li>No chain-link marker on the cards in a chain.</li>
+          </ul>
+        </div>
+        <div class="panel group">
+          <h3>Setup and card viewer</h3>
+          <ul>
+            <li>
+              Deck pick is a native select with long names; no cover art, no
+              card counts.
+            </li>
+            <li>Import shows a file input and a text box at all times.</li>
+            <li>
+              Card viewer: a text list plus one 220 px picture; no filters, no
+              grid.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <h2 class="h">3. Ideas every look shares</h2>
+      <div class="panel group">
+        <ul>
+          <li>
+            <b>Full-height duel screen:</b> card text left, table centre, life
+            points + phase + coach + log right. No page scroll.
+          </li>
+          <li>
+            <b>Real table:</b> 7×5 grid with named zones, piles (Deck, Extra,
+            GY) drawn as stacks with counts, Extra Monster Zones in the middle
+            row.
+          </li>
+          <li>
+            <b>Hand at the bottom</b>, larger and fanned; a card rises on hover;
+            a click opens a small menu of its legal actions.
+          </li>
+          <li>
+            <b>Prompt box above the hand</b> with one line on what happened
+            ("Chain 1 · AI activates Pot of Prosperity"); cards that can respond
+            glow; chain links get a number badge.
+          </li>
+          <li>
+            <b>Card picks</b> (SELECT_CARD and friends) as a row of real cards
+            in a dialog, not a list of buttons.
+          </li>
+          <li>
+            <b>Duel end</b> screen with the result, a short reason and "Rematch,
+            same hands".
+          </li>
+          <li>
+            <b>Coach box</b> next to the log: one short hint at the moment it
+            matters.
+          </li>
+        </ul>
+      </div>
+
+      <h2 class="h">4. Three looks</h2>
+      <div class="looks">
+        <div class="panel look">
+          <div class="sw sw-a"></div>
+          <div class="body">
+            <h3>A · Arena</h3>
+            <span class="muted">Master Duel feel</span>
+            <ul>
+              <li>
+                Stone table tilted in 3D, gold trim, blue glow on your side
+              </li>
+              <li>Life points in the corners, round phase badge</li>
+              <li>Most "game" feel; tilt makes the far row smaller</li>
+            </ul>
+            <span class="eff">About 3 days to build</span>
+            <a class="btn" href="duel-revamp.html?theme=arena"
+              >Open duel in A</a
+            >
+          </div>
+        </div>
+        <div class="panel look">
+          <div class="sw sw-b"></div>
+          <div class="body">
+            <h3>B · Holo</h3>
+            <span class="muted">EDOPro / Duel Links feel</span>
+            <ul>
+              <li>Blue grid, glowing zones, digital life-point font</li>
+              <li>Full card + text always on the left</li>
+              <li>Chain settings ("only when I can respond")</li>
+            </ul>
+            <span class="eff">About 2 days to build</span>
+            <a class="btn" href="duel-revamp.html?theme=holo">Open duel in B</a>
+          </div>
+        </div>
+        <div class="panel look">
+          <div class="sw sw-c"></div>
+          <div class="body">
+            <h3>C · Clean</h3>
+            <span class="muted">Flat and readable</span>
+            <ul>
+              <li>No tilt, zone names printed, calm colours</li>
+              <li>Easiest to read and to test</li>
+              <li>Least "game" feel</li>
+            </ul>
+            <span class="eff">About 1 day to build</span>
+            <a class="btn" href="duel-revamp.html?theme=clean"
+              >Open duel in C</a
+            >
+          </div>
+        </div>
+      </div>
+      <p class="muted" style="font-size: 13px">
+        The looks mix well: for example C's flat table with A's colours and
+        corner life points. Times cover the duel screen; add about half a day
+        per look for setup + card viewer.
+      </p>
+
+      <h2 class="h">5. Mockups</h2>
+      <div class="panel" style="padding: 4px 6px">
+        <table>
+          <tr>
+            <th>Screen</th>
+            <th>What to try</th>
+          </tr>
+          <tr>
+            <td><a href="setup-revamp.html">Setup</a></td>
+            <td>
+              You vs AI panels, deck tiles with cover art, first/second switch,
+              import box behind "+ Import", missing-card warning, a "drill mode"
+              idea.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="duel-revamp.html">Duel</a></td>
+            <td>
+              Hover any card; click a hand card; "Chain…" and "Pass"; top-right
+              buttons open the card-pick dialog and the duel-end screen.
+            </td>
+          </tr>
+          <tr>
+            <td><a href="cards-revamp.html">Card viewer</a></td>
+            <td>
+              Search, filter chips (Handtraps, Extra Deck…), card grid, EN/FR
+              switch, coach note on handtraps.
+            </td>
+          </tr>
+        </table>
+      </div>
+
+      <h2 class="h">6. Watch out when building</h2>
+      <div class="panel group">
+        <ul>
+          <li>
+            <b>Offline fonts:</b> the mockups load Cinzel / Orbitron / Inter
+            from Google. The Tauri app must bundle them (for example
+            <code>@fontsource/*</code>, OFL licence).
+          </li>
+          <li>
+            <b>Card art:</b> mockups load from images.ygoprodeck.com; the app
+            should keep using its own image cache.
+          </li>
+          <li>
+            <b>Tests:</b> unit and e2e tests find elements by
+            <code>aria-label</code> and role. Keep those labels when the markup
+            changes.
+          </li>
+          <li>
+            <b>3D tilt</b> (A, B): fine for clicks, but keep a "flat board"
+            switch for reading and for screenshots in e2e.
+          </li>
+          <li>
+            <b>Motion:</b> respect <code>prefers-reduced-motion</code> for the
+            hover lift and glows.
+          </li>
+        </ul>
+      </div>
+
+      <h2 class="h">7. Decisions for you</h2>
+      <div class="panel need">
+        <ol>
+          <li><b>Look:</b> A, B, C, or a mix.</li>
+          <li><b>Scope:</b> duel screen only first, or all three screens.</li>
+          <li><b>When:</b> its own milestone after M5, or folded into M5.</li>
+        </ol>
+      </div>
+    </div>
+    <script src="ux.js"></script>
+  </body>
+</html>

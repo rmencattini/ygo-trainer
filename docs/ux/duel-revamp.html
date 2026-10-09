@@ -1,0 +1,1575 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Duel Screen Revamp</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Inter:wght@400;600;700&family=Orbitron:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ---------- shared ---------- */
+      :root {
+        --cw: 62px;
+        --ch: calc(var(--cw) * 1.46);
+        --hw: 92px;
+        --hh: calc(var(--hw) * 1.46);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        font-family: Inter, system-ui, sans-serif;
+        color: #e9edf2;
+        background: #111;
+        overflow: hidden;
+      }
+      button {
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .topbar {
+        height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 12px;
+        background: #0a0c0f;
+        border-bottom: 1px solid #2a2f36;
+        font-size: 13px;
+        position: relative;
+        z-index: 20;
+      }
+      .topbar b {
+        margin-right: 8px;
+      }
+      .topbar .tab {
+        background: #1b2027;
+        color: #cfd6de;
+        border: 1px solid #333a43;
+        border-radius: 6px;
+        padding: 5px 12px;
+      }
+      .topbar .tab[aria-pressed="true"] {
+        background: #e9edf2;
+        color: #111;
+        border-color: #e9edf2;
+      }
+      .topbar a {
+        color: #cfd6de;
+        text-decoration: none;
+        padding: 5px 8px;
+        border-radius: 6px;
+      }
+      .topbar a[aria-current="page"] {
+        background: #2a313b;
+        color: #fff;
+      }
+      .topbar .sep {
+        width: 1px;
+        height: 20px;
+        background: #333a43;
+        margin: 0 6px;
+      }
+      .topbar .note {
+        margin-left: 12px;
+        color: #9aa4b0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+      }
+      .topbar .demo {
+        background: none;
+        border: 1px solid #444c56;
+        color: #cfd6de;
+        border-radius: 6px;
+        padding: 5px 10px;
+      }
+
+      .screen {
+        height: calc(100vh - 44px);
+        display: grid;
+        grid-template-columns: 290px minmax(0, 1fr) 290px;
+      }
+      .detail,
+      .rail {
+        padding: 14px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        position: relative;
+        z-index: 5;
+      }
+      .table {
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+      }
+      .opp-hand,
+      .my-hand {
+        display: flex;
+        justify-content: center;
+        position: relative;
+        z-index: 3;
+      }
+      .opp-hand {
+        height: 58px;
+        overflow: hidden;
+      }
+      .opp-hand .card {
+        margin: -60px -8px 0;
+      }
+      .my-hand {
+        height: 96px;
+        align-items: flex-start;
+        overflow: visible;
+      }
+      .plane-wrap {
+        flex: 1;
+        padding-bottom: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        perspective: 1300px;
+        min-height: 0;
+      }
+      .plane {
+        display: grid;
+        grid-template-columns: repeat(7, calc(var(--cw) + 14px));
+        grid-template-rows: repeat(5, calc(var(--ch) + 10px));
+        gap: 6px 8px;
+        padding: 18px 26px;
+        position: relative;
+        transform-style: preserve-3d;
+      }
+      .zone {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .zone .lbl {
+        position: absolute;
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* cards */
+      .card {
+        width: var(--cw);
+        height: var(--ch);
+        border-radius: 5px;
+        position: relative;
+        flex-shrink: 0;
+        padding: 4px;
+        background: var(--frame);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s;
+      }
+      .card .art {
+        position: absolute;
+        inset: 14% 8% 26% 8%;
+        border-radius: 2px;
+        overflow: hidden;
+        background:
+          linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.35),
+            rgba(0, 0, 0, 0.35)
+          ),
+          var(--frame);
+      }
+      .card .art img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .card .nm {
+        position: absolute;
+        top: 3%;
+        left: 8%;
+        right: 8%;
+        font-size: 7px;
+        font-weight: 700;
+        color: #111;
+        background: rgba(255, 255, 255, 0.75);
+        border-radius: 2px;
+        padding: 1px 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .card .tx {
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        bottom: 5%;
+        height: 17%;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 2px;
+      }
+      .card .st {
+        position: absolute;
+        left: 50%;
+        bottom: -17px;
+        transform: translateX(-50%);
+        font-weight: 700;
+        font-size: 12px;
+        white-space: nowrap;
+        text-shadow:
+          0 1px 3px #000,
+          0 0 2px #000;
+      }
+      .card .badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        font-weight: 800;
+        background: #ffcc33;
+        color: #111;
+        box-shadow: 0 0 10px #ffcc33;
+      }
+      .card.down {
+        background: radial-gradient(
+          circle at 50% 50%,
+          #e8b04a 0 10%,
+          #7a2d12 11% 30%,
+          #2b130a 31% 100%
+        );
+        border: 3px solid #5a3a1a;
+      }
+      .card.down > * {
+        display: none;
+      }
+      .card.def {
+        transform: rotate(90deg);
+      }
+      .k-effect {
+        --frame: #c8723a;
+      }
+      .k-normal {
+        --frame: #d6b75c;
+      }
+      .k-synchro {
+        --frame: #e9e9ea;
+      }
+      .k-link {
+        --frame: #2d63a8;
+      }
+      .k-xyz {
+        --frame: #26262a;
+      }
+      .k-fusion {
+        --frame: #7c4c9e;
+      }
+      .k-spell {
+        --frame: #1f8f7f;
+      }
+      .k-trap {
+        --frame: #ad3580;
+      }
+
+      .pile {
+        position: relative;
+      }
+      .pile .count {
+        position: absolute;
+        bottom: -16px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        font-weight: 700;
+        text-shadow: 0 1px 3px #000;
+      }
+      .pile .card {
+        box-shadow:
+          2px 2px 0 rgba(0, 0, 0, 0.4),
+          4px 4px 0 rgba(0, 0, 0, 0.3),
+          0 3px 8px rgba(0, 0, 0, 0.5);
+      }
+
+      /* hand */
+      .my-hand .card {
+        width: var(--hw);
+        height: var(--hh);
+        margin: 0 -6px;
+        transform-origin: 50% 120%;
+        cursor: pointer;
+      }
+      .my-hand .card .nm {
+        font-size: 9px;
+      }
+      .my-hand .card:hover {
+        transform: translateY(-46px) rotate(0) !important;
+        z-index: 2;
+      }
+      .my-hand .card.can {
+        box-shadow:
+          0 0 0 2px var(--go),
+          0 0 18px var(--go);
+      }
+      .my-hand .card.sel {
+        transform: translateY(-46px) !important;
+      }
+
+      /* popover menu on hand card */
+      .menu {
+        position: absolute;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px;
+        border-radius: 8px;
+        min-width: 130px;
+      }
+      .menu button {
+        text-align: left;
+        padding: 6px 10px;
+        border-radius: 5px;
+        border: 0;
+      }
+
+      /* prompt banner */
+      .prompt {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 104px;
+        z-index: 10;
+        padding: 12px 16px;
+        border-radius: 10px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        width: min(560px, 92%);
+      }
+      .prompt .msg {
+        flex: 1;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+      .prompt .msg strong {
+        display: block;
+        font-size: 15px;
+        margin-bottom: 2px;
+      }
+      .prompt .btns {
+        display: flex;
+        gap: 8px;
+      }
+      .prompt .btns button {
+        padding: 8px 14px;
+        border-radius: 7px;
+        border: 0;
+        font-weight: 700;
+      }
+
+      /* modal (card pick) */
+      .modal-bg {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+      }
+      .modal-bg.open {
+        display: flex;
+      }
+      .modal {
+        padding: 18px 22px;
+        border-radius: 12px;
+        max-width: 720px;
+      }
+      .modal h3 {
+        margin: 0 0 4px;
+      }
+      .modal p {
+        margin: 0 0 14px;
+        font-size: 13px;
+        opacity: 0.8;
+      }
+      .modal .row {
+        display: flex;
+        gap: 14px;
+        padding: 8px 4px 24px;
+      }
+      .modal .card {
+        --cw: 92px;
+        cursor: pointer;
+      }
+      .modal .card.sel {
+        outline: 3px solid var(--go);
+        outline-offset: 3px;
+        transform: translateY(-6px);
+      }
+      .modal .foot {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .modal .foot button {
+        padding: 8px 16px;
+        border-radius: 7px;
+        border: 0;
+        font-weight: 700;
+      }
+
+      /* duel end overlay */
+      .end {
+        position: absolute;
+        inset: 0;
+        z-index: 40;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 14px;
+        background: radial-gradient(
+          ellipse at center,
+          rgba(0, 0, 0, 0.55),
+          rgba(0, 0, 0, 0.85)
+        );
+      }
+      .end.open {
+        display: flex;
+      }
+      .end .word {
+        font-size: 84px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        line-height: 1;
+      }
+      .end .why {
+        font-size: 15px;
+        opacity: 0.85;
+      }
+      .end .sum {
+        display: flex;
+        gap: 24px;
+        font-size: 13px;
+        margin-top: 4px;
+      }
+      .end .sum div {
+        text-align: center;
+      }
+      .end .sum b {
+        display: block;
+        font-size: 22px;
+      }
+      .end .btns {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      .end .btns button {
+        padding: 10px 18px;
+        border-radius: 8px;
+        border: 0;
+        font-weight: 700;
+      }
+      [data-theme="arena"] .end .word {
+        font-family: Cinzel, serif;
+        color: #d9b45f;
+        text-shadow: 0 0 30px rgba(217, 180, 95, 0.6);
+      }
+      [data-theme="holo"] .end .word {
+        font-family: Orbitron, monospace;
+        color: #45e0ff;
+        text-shadow: 0 0 30px #45e0ff;
+      }
+      [data-theme="clean"] .end .word {
+        color: #8aa8ff;
+      }
+
+      /* detail panel */
+      .big {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--frame);
+        position: relative;
+      }
+      .big img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .d-name {
+        font-weight: 700;
+        font-size: 17px;
+        margin: 0;
+      }
+      .d-type {
+        font-size: 12px;
+        opacity: 0.75;
+        margin: 0;
+      }
+      .d-stats {
+        display: flex;
+        gap: 12px;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .d-text {
+        font-size: 13px;
+        line-height: 1.45;
+        margin: 0;
+        opacity: 0.92;
+      }
+
+      /* rail */
+      .lp-block {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .lp-block .who {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        opacity: 0.85;
+      }
+      .lp-block .val {
+        font-size: 26px;
+        font-weight: 700;
+      }
+      .lp-block .bar {
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.1);
+        overflow: hidden;
+      }
+      .lp-block .bar i {
+        display: block;
+        height: 100%;
+        width: 100%;
+      }
+      .phase-track {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 4px;
+      }
+      .phase-track span {
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 5px 0;
+        border-radius: 4px;
+      }
+      .log {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 12.5px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .log li {
+        display: flex;
+        gap: 8px;
+        align-items: baseline;
+      }
+      .log li .t {
+        font-size: 10px;
+        opacity: 0.55;
+        min-width: 28px;
+      }
+      .log li.ai::before {
+        content: "AI";
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background: #b33;
+        color: #fff;
+      }
+      .log li.me::before {
+        content: "YOU";
+        font-size: 9px;
+        font-weight: 800;
+        padding: 1px 4px;
+        border-radius: 3px;
+        background: #2a62c9;
+        color: #fff;
+      }
+      .coach {
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      .coach b {
+        display: block;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .h {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.6;
+        margin: 6px 0 0;
+      }
+      .chain-opts {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 14px;
+      }
+      .chain-opts label {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      /* bits only some themes show */
+      .lp-corner,
+      .phase-coin,
+      .chain-opts,
+      .holo-only {
+        display: none;
+      }
+
+      /* =================================================================
+   A · ARENA  (Master Duel feel: stone table, tilt, gold, corner LP)
+   ================================================================= */
+      [data-theme="arena"] {
+        --go: #5fd3ff;
+        --gold: #d9b45f;
+      }
+      [data-theme="arena"] body,
+      body[data-theme="arena"] {
+        background: radial-gradient(
+          ellipse at 50% 45%,
+          #3b4249 0%,
+          #1a1f24 55%,
+          #0d1013 100%
+        );
+      }
+      [data-theme="arena"] .detail,
+      [data-theme="arena"] .rail {
+        background: linear-gradient(
+          180deg,
+          rgba(10, 14, 18, 0.85),
+          rgba(10, 14, 18, 0.6)
+        );
+      }
+      [data-theme="arena"] .detail {
+        border-right: 1px solid rgba(217, 180, 95, 0.25);
+      }
+      [data-theme="arena"] .rail {
+        border-left: 1px solid rgba(217, 180, 95, 0.25);
+      }
+      [data-theme="arena"] .d-name,
+      [data-theme="arena"] .h {
+        font-family: Cinzel, serif;
+        color: var(--gold);
+      }
+      [data-theme="arena"] .plane {
+        transform: rotateX(26deg) translateY(-10px);
+        background:
+          radial-gradient(
+            ellipse at 50% 50%,
+            rgba(255, 255, 255, 0.18),
+            transparent 60%
+          ),
+          repeating-radial-gradient(
+            circle at 50% 50%,
+            rgba(0, 0, 0, 0.05) 0 2px,
+            transparent 2px 22px
+          ),
+          linear-gradient(180deg, #a9adb2, #8b9096);
+        border: 8px solid #6d727a;
+        border-radius: 22px;
+        box-shadow:
+          inset 0 0 0 2px #c9ccd0,
+          inset 0 0 60px rgba(0, 0, 0, 0.35),
+          0 30px 60px rgba(0, 0, 0, 0.6);
+      }
+      [data-theme="arena"] .plane::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 42%;
+        pointer-events: none;
+        border-radius: 0 0 14px 14px;
+        background: linear-gradient(
+          0deg,
+          rgba(40, 150, 255, 0.45),
+          transparent
+        );
+      }
+      [data-theme="arena"] .zone:not(.empty-cell) {
+        background: rgba(255, 255, 255, 0.22);
+        border: 2px solid rgba(255, 255, 255, 0.45);
+        clip-path: polygon(
+          18% 0,
+          82% 0,
+          100% 14%,
+          100% 86%,
+          82% 100%,
+          18% 100%,
+          0 86%,
+          0 14%
+        );
+      }
+      [data-theme="arena"] .zone.emz {
+        background: rgba(255, 255, 255, 0.32);
+      }
+      [data-theme="arena"] .lp-corner {
+        display: flex;
+        position: absolute;
+        z-index: 6;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px 6px 6px;
+        background: linear-gradient(
+          90deg,
+          rgba(8, 10, 14, 0.95),
+          rgba(8, 10, 14, 0.75)
+        );
+        border-radius: 8px;
+      }
+      [data-theme="arena"] .lp-corner.opp {
+        top: 8px;
+        right: 12px;
+        border-top: 3px solid #d33;
+      }
+      [data-theme="arena"] .lp-corner.me {
+        bottom: 12px;
+        left: 12px;
+        border-top: 3px solid #3a7bea;
+      }
+      .lp-corner .av {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        background: linear-gradient(135deg, #485563, #29323c);
+        border: 2px solid var(--gold);
+      }
+      .lp-corner .nm2 {
+        font-size: 12px;
+        opacity: 0.85;
+      }
+      .lp-corner .lp {
+        font-family: Cinzel, serif;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+      .lp-corner .lp small {
+        font-size: 13px;
+        color: var(--gold);
+        margin-right: 6px;
+      }
+      [data-theme="arena"] .phase-coin {
+        display: grid;
+        place-items: center;
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 104px;
+        height: 104px;
+        border-radius: 50%;
+        z-index: 6;
+        text-align: center;
+        line-height: 1.05;
+        background: radial-gradient(circle at 40% 35%, #3a3f46, #0f1216 70%);
+        border: 6px solid var(--gold);
+        box-shadow:
+          0 0 0 2px #6b5520,
+          0 8px 24px rgba(0, 0, 0, 0.6);
+        font-family: Cinzel, serif;
+      }
+      .phase-coin small {
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .phase-coin b {
+        font-size: 19px;
+        display: block;
+      }
+      [data-theme="arena"] .lp-block,
+      [data-theme="arena"] .phase-track {
+        display: none;
+      }
+      [data-theme="arena"] .prompt {
+        background: linear-gradient(
+          180deg,
+          rgba(18, 22, 28, 0.97),
+          rgba(10, 12, 16, 0.97)
+        );
+        border: 1px solid var(--gold);
+        box-shadow:
+          0 0 0 1px #000,
+          0 12px 30px rgba(0, 0, 0, 0.6);
+      }
+      [data-theme="arena"] .prompt strong {
+        font-family: Cinzel, serif;
+        color: var(--gold);
+      }
+      [data-theme="arena"] .prompt .go,
+      [data-theme="arena"] .modal .go {
+        background: linear-gradient(180deg, #e8c46d, #b38c34);
+        color: #1b1406;
+      }
+      [data-theme="arena"] .prompt .no,
+      [data-theme="arena"] .modal .no {
+        background: #2a3038;
+        color: #e9edf2;
+      }
+      [data-theme="arena"] .modal {
+        background: #12161b;
+        border: 1px solid var(--gold);
+      }
+      [data-theme="arena"] .modal h3 {
+        font-family: Cinzel, serif;
+        color: var(--gold);
+      }
+      [data-theme="arena"] .menu {
+        background: rgba(12, 15, 19, 0.97);
+        border: 1px solid var(--gold);
+      }
+      [data-theme="arena"] .menu button {
+        background: #232931;
+        color: #eee;
+      }
+      [data-theme="arena"] .menu button:hover {
+        background: #3a4350;
+      }
+      [data-theme="arena"] .coach {
+        background: rgba(217, 180, 95, 0.1);
+        border: 1px solid rgba(217, 180, 95, 0.4);
+      }
+      [data-theme="arena"] .coach b {
+        color: var(--gold);
+      }
+
+      /* =================================================================
+   B · HOLO  (EDOPro / Duel Links feel: blue hologrid, big card left)
+   ================================================================= */
+      body[data-theme="holo"] {
+        --go: #45e0ff;
+        background:
+          repeating-linear-gradient(
+            0deg,
+            rgba(80, 170, 255, 0.06) 0 1px,
+            transparent 1px 40px
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(80, 170, 255, 0.06) 0 1px,
+            transparent 1px 40px
+          ),
+          radial-gradient(
+            ellipse at 50% 55%,
+            #0f3d82 0%,
+            #061a3d 50%,
+            #020816 100%
+          );
+      }
+      [data-theme="holo"] .screen {
+        grid-template-columns: 320px minmax(0, 1fr) 260px;
+      }
+      [data-theme="holo"] .detail {
+        background: rgba(2, 8, 22, 0.75);
+        border-right: 1px solid rgba(69, 224, 255, 0.25);
+      }
+      [data-theme="holo"] .big {
+        aspect-ratio: 421 / 614;
+        padding: 8%;
+        padding-top: 14%;
+        padding-bottom: 40%;
+      }
+      [data-theme="holo"] .big img {
+        border-radius: 2px;
+      }
+      [data-theme="holo"] .d-name {
+        color: #ffd34a;
+      }
+      [data-theme="holo"] .d-type {
+        color: #ff8a5c;
+        opacity: 1;
+      }
+      [data-theme="holo"] .plane {
+        transform: rotateX(30deg) translateY(-6px);
+      }
+      [data-theme="holo"] .zone:not(.empty-cell) {
+        background: rgba(40, 140, 255, 0.14);
+        border: 1px solid rgba(110, 200, 255, 0.55);
+        box-shadow:
+          inset 0 0 14px rgba(69, 224, 255, 0.25),
+          0 0 8px rgba(69, 224, 255, 0.2);
+      }
+      [data-theme="holo"] .zone.emz {
+        background: rgba(120, 90, 255, 0.18);
+      }
+      [data-theme="holo"] .zone.mine-row {
+        background: rgba(60, 170, 255, 0.22);
+      }
+      [data-theme="holo"] .rail {
+        background: rgba(2, 8, 22, 0.6);
+        border-left: 1px solid rgba(69, 224, 255, 0.25);
+      }
+      [data-theme="holo"] .lp-block {
+        background: rgba(5, 20, 45, 0.9);
+        border: 1px solid rgba(69, 224, 255, 0.45);
+        padding: 8px 10px;
+        border-radius: 4px;
+      }
+      [data-theme="holo"] .lp-block .val {
+        font-family: Orbitron, monospace;
+        color: #ff9a4a;
+        text-shadow: 0 0 8px rgba(255, 120, 40, 0.6);
+      }
+      [data-theme="holo"] .lp-block .bar i {
+        background: linear-gradient(90deg, #ff5a2a, #ffb04a);
+      }
+      [data-theme="holo"] .phase-track span {
+        font-family: Orbitron, monospace;
+        color: rgba(160, 210, 255, 0.55);
+        border: 1px solid rgba(69, 224, 255, 0.2);
+      }
+      [data-theme="holo"] .phase-track span.on {
+        color: #fff;
+        background: rgba(69, 224, 255, 0.25);
+        border-color: #45e0ff;
+        text-shadow: 0 0 6px #45e0ff;
+      }
+      [data-theme="holo"] .chain-opts {
+        display: flex;
+      }
+      [data-theme="holo"] .h {
+        color: #45e0ff;
+      }
+      [data-theme="holo"] .prompt {
+        background: rgba(4, 18, 42, 0.95);
+        border: 1px solid #45e0ff;
+        box-shadow: 0 0 24px rgba(69, 224, 255, 0.35);
+      }
+      [data-theme="holo"] .prompt strong {
+        color: #45e0ff;
+        font-family: Orbitron, monospace;
+        font-size: 13px;
+        letter-spacing: 0.05em;
+      }
+      [data-theme="holo"] .go {
+        background: #45e0ff;
+        color: #02142e;
+      }
+      [data-theme="holo"] .no {
+        background: #12305a;
+        color: #cfe8ff;
+      }
+      [data-theme="holo"] .modal {
+        background: #061a3d;
+        border: 1px solid #45e0ff;
+      }
+      [data-theme="holo"] .menu {
+        background: rgba(4, 18, 42, 0.97);
+        border: 1px solid #45e0ff;
+      }
+      [data-theme="holo"] .menu button {
+        background: #0d2b55;
+        color: #e6f4ff;
+      }
+      [data-theme="holo"] .menu button:hover {
+        background: #17447f;
+      }
+      [data-theme="holo"] .coach {
+        background: rgba(69, 224, 255, 0.08);
+        border-left: 3px solid #45e0ff;
+      }
+      [data-theme="holo"] .coach b {
+        color: #45e0ff;
+      }
+      [data-theme="holo"] .holo-only {
+        display: block;
+      }
+
+      /* =================================================================
+   C · CLEAN  (flat, readable, closest to today's code)
+   ================================================================= */
+      body[data-theme="clean"] {
+        --go: #8aa8ff;
+        background: #0f1216;
+      }
+      [data-theme="clean"] .detail,
+      [data-theme="clean"] .rail {
+        background: #161a20;
+      }
+      [data-theme="clean"] .detail {
+        border-right: 1px solid #252b33;
+      }
+      [data-theme="clean"] .rail {
+        border-left: 1px solid #252b33;
+      }
+      [data-theme="clean"] .plane {
+        background: #151920;
+        border: 1px solid #252b33;
+        border-radius: 14px;
+      }
+      [data-theme="clean"] .plane::before {
+        content: "";
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        top: 50%;
+        border-top: 1px dashed #2f3640;
+      }
+      [data-theme="clean"] .zone:not(.empty-cell) {
+        border: 1px dashed #343c47;
+        border-radius: 6px;
+        background: #1a1f27;
+      }
+      [data-theme="clean"] .zone.mine-row {
+        background: #1a2130;
+        border-color: #34405a;
+      }
+      [data-theme="clean"] .zone .lbl {
+        opacity: 0.45;
+      }
+      [data-theme="clean"] .zone:has(.card) .lbl {
+        opacity: 0;
+      }
+      [data-theme="clean"] .lp-block {
+        background: #1c2129;
+        border-radius: 8px;
+        padding: 10px 12px;
+      }
+      [data-theme="clean"] .lp-block.opp .bar i {
+        background: #e05a5a;
+      }
+      [data-theme="clean"] .lp-block.me .bar i {
+        background: #5a8be0;
+      }
+      [data-theme="clean"] .phase-track span {
+        background: #1c2129;
+        color: #6c7682;
+      }
+      [data-theme="clean"] .phase-track span.on {
+        background: #8aa8ff;
+        color: #0f1216;
+      }
+      [data-theme="clean"] .prompt {
+        background: #1c2129;
+        border: 1px solid #2f3742;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      }
+      [data-theme="clean"] .go {
+        background: #8aa8ff;
+        color: #0f1216;
+      }
+      [data-theme="clean"] .no {
+        background: #2a313b;
+        color: #e9edf2;
+      }
+      [data-theme="clean"] .modal {
+        background: #161a20;
+        border: 1px solid #2f3742;
+      }
+      [data-theme="clean"] .menu {
+        background: #1c2129;
+        border: 1px solid #2f3742;
+      }
+      [data-theme="clean"] .menu button {
+        background: transparent;
+        color: #e9edf2;
+      }
+      [data-theme="clean"] .menu button:hover {
+        background: #2a313b;
+      }
+      [data-theme="clean"] .coach {
+        background: #1b2233;
+        border: 1px solid #2c3a5c;
+      }
+      [data-theme="clean"] .coach b {
+        color: #8aa8ff;
+      }
+    </style>
+  </head>
+  <body data-theme="arena">
+    <div class="screen">
+      <!-- left: card details -->
+      <aside class="detail" id="detail"></aside>
+
+      <!-- center: table -->
+      <main class="table">
+        <div class="lp-corner opp">
+          <div class="av">AI</div>
+          <div>
+            <div class="nm2">AI · Snake-Eye</div>
+            <div class="lp"><small>LP</small>8000</div>
+          </div>
+        </div>
+        <div class="lp-corner me">
+          <div class="av">RM</div>
+          <div>
+            <div class="nm2">You · Handtraps</div>
+            <div class="lp"><small>LP</small>8000</div>
+          </div>
+        </div>
+        <div class="phase-coin">
+          <div><small>Turn 1</small><b>Main 1</b><small>AI's turn</small></div>
+        </div>
+
+        <div class="opp-hand" id="oppHand"></div>
+        <div class="plane-wrap"><div class="plane" id="plane"></div></div>
+
+        <div class="prompt" id="prompt">
+          <div class="msg">
+            <strong>Chain 1 · AI activates Pot of Prosperity</strong> Respond?
+            Cards that can chain now glow in your hand.
+          </div>
+          <div class="btns">
+            <button class="go" id="chainBtn">Chain…</button
+            ><button class="no" id="passBtn">Pass</button>
+          </div>
+        </div>
+        <div class="my-hand" id="myHand"></div>
+        <div class="end" id="end">
+          <div class="word">VICTORY</div>
+          <div class="why">The AI's board could not stop your turn-2 push.</div>
+          <div class="sum">
+            <div><b>3</b>handtraps used</div>
+            <div><b>2</b>negated combo pieces</div>
+            <div><b>5</b>turns</div>
+          </div>
+          <div class="btns">
+            <button class="go">Rematch, same hands</button
+            ><button class="no">New duel</button
+            ><button class="no">Replay log</button>
+          </div>
+        </div>
+      </main>
+
+      <!-- right: LP, phase, coach, log -->
+      <aside class="rail">
+        <div class="lp-block opp">
+          <div class="who"><span>AI · Snake-Eye</span><span>Hand 2</span></div>
+          <div class="val">8000</div>
+          <div class="bar"><i></i></div>
+        </div>
+        <div class="lp-block me">
+          <div class="who"><span>You · Handtraps</span><span>Hand 5</span></div>
+          <div class="val">8000</div>
+          <div class="bar"><i></i></div>
+        </div>
+        <div class="phase-track">
+          <span>DP</span><span>SP</span><span class="on">M1</span><span>BP</span
+          ><span>M2</span><span>EP</span>
+        </div>
+
+        <div class="coach">
+          <b>Coach</b>Ash Blossom can negate this: Pot of Prosperity adds a card
+          from the Deck. Use Ash now, or keep it for the AI's main combo
+          starter?
+        </div>
+
+        <p class="h holo-only">Chain settings</p>
+        <div class="chain-opts">
+          <label><input type="checkbox" /> Stop at every chance</label>
+          <label
+            ><input type="checkbox" checked /> Only when I can respond</label
+          >
+          <label><input type="checkbox" /> Auto-pass</label>
+        </div>
+
+        <p class="h">Duel log</p>
+        <ol class="log">
+          <li class="ai">
+            <span class="t">T1</span>Normal Summons Snake-Eye Ash
+          </li>
+          <li class="ai">
+            <span class="t">T1</span>Synchro Summons Baronne de Fleur
+          </li>
+          <li class="ai">
+            <span class="t">T1</span>Link Summons Apollousa, Bow of the Goddess
+          </li>
+          <li class="ai"><span class="t">T1</span>Sets 1 card</li>
+          <li class="ai">
+            <span class="t">T1</span>Activates Pot of Prosperity (chain 1)
+          </li>
+        </ol>
+      </aside>
+    </div>
+
+    <!-- card-pick modal (SELECT_CARD example) -->
+    <div class="modal-bg" id="pickBg">
+      <div class="modal">
+        <h3>Select 1 card to add to your hand</h3>
+        <p>
+          Pot of Prosperity · excavated cards. Click a card, then confirm. Hover
+          shows its text on the left.
+        </p>
+        <div class="row" id="pickRow"></div>
+        <div class="foot">
+          <button class="no" id="pickCancel">Cancel</button
+          ><button class="go" id="pickOk">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="ux.js"></script>
+    <script>
+      const IMG = (id) =>
+        `https://images.ygoprodeck.com/images/cards_cropped/${id}.jpg`;
+      const C = {
+        baronne: {
+          id: 84815190,
+          name: "Baronne de Fleur",
+          k: "synchro",
+          atk: 3000,
+          def: 2400,
+          type: "Wyrm / Synchro / Effect · Level 10 · WIND",
+          text: "Quick effect, once per turn: negate the activation of a card or effect, and if you do, destroy it. In your Standby Phase it can return a Level 9 or lower monster from the GY.",
+        },
+        apollousa: {
+          id: 4280258,
+          name: "Apollousa, Bow of the Goddess",
+          k: "link",
+          atk: 3200,
+          link: 4,
+          type: "Fairy / Link / Effect · Link 4 · WIND",
+          text: "Its ATK is 800 times its Link Materials. Once per chain, when your opponent activates a monster effect: negate it, and this card loses 800 ATK.",
+        },
+        pot: {
+          id: 84211599,
+          name: "Pot of Prosperity",
+          k: "spell",
+          type: "Normal Spell",
+          text: "Banish 3 or 6 random face-down cards from your Extra Deck. Excavate that many cards from the top of your Deck, add 1 of them to your hand, and put the rest on the bottom. Only 1 per turn.",
+        },
+        ashE: {
+          id: 9674034,
+          name: "Snake-Eye Ash",
+          k: "effect",
+          atk: 800,
+          def: 1800,
+          type: "Pyro / Effect · Level 1 · FIRE",
+          text: "On summon: add a Level 1 FIRE monster from your Deck to your hand. Can place 2 face-up FIRE monsters from your field as Continuous Spells.",
+        },
+        ash: {
+          id: 14558127,
+          name: "Ash Blossom & Joyous Spring",
+          k: "effect",
+          atk: 0,
+          def: 1800,
+          type: "Zombie / Tuner / Effect · Level 3 · FIRE",
+          text: "From your hand, discard this card when a card or effect is activated that would add a card from the Deck to the hand, special summon from the Deck, or send from the Deck to the GY: negate that effect.",
+          can: true,
+        },
+        maxx: {
+          id: 23434538,
+          name: 'Maxx "C"',
+          k: "effect",
+          atk: 500,
+          def: 200,
+          type: "Insect / Effect · Level 2 · EARTH",
+          text: "Quick effect: discard this card. This turn, each time your opponent special summons, draw 1 card.",
+          can: true,
+        },
+        veiler: {
+          id: 97268402,
+          name: "Effect Veiler",
+          k: "effect",
+          atk: 0,
+          def: 0,
+          type: "Spellcaster / Tuner / Effect · Level 1 · LIGHT",
+          text: "During your opponent's Main Phase: discard this card, target 1 face-up effect monster your opponent controls; negate its effects until end of turn.",
+          can: true,
+        },
+        called: {
+          id: 24224830,
+          name: "Called by the Grave",
+          k: "spell",
+          type: "Quick-Play Spell",
+          text: "Target 1 monster in your opponent's GY; banish it, and if you do, until the end of the next turn, negate its effects and those of cards with the same name.",
+        },
+        imperm: {
+          id: 10045474,
+          name: "Infinite Impermanence",
+          k: "trap",
+          type: "Normal Trap",
+          text: "Target 1 face-up monster your opponent controls; negate its effects until the end of this turn. If you control no cards, you can activate this from your hand.",
+          can: true,
+        },
+        bewd: {
+          id: 89631139,
+          name: "Blue-Eyes White Dragon",
+          k: "normal",
+          atk: 3000,
+          def: 2500,
+          type: "Dragon / Normal · Level 8 · LIGHT",
+          text: "This legendary dragon is a powerful engine of destruction.",
+        },
+        dmg: {
+          id: 38033121,
+          name: "Dark Magician Girl",
+          k: "effect",
+          atk: 2000,
+          def: 1700,
+          type: "Spellcaster / Effect · Level 6 · DARK",
+          text: "Gains 300 ATK for every Dark Magician or Magician of Black Chaos in either GY.",
+        },
+      };
+
+      function cardEl(key, opts = {}) {
+        const d = document.createElement("div");
+        if (opts.down) {
+          d.className = "card down";
+          return d;
+        }
+        const c = C[key];
+        d.className = `card k-${c.k}` + (opts.def ? " def" : "");
+        d.dataset.key = key;
+        const stats = c.link
+          ? `${c.atk} · L${c.link}`
+          : c.atk !== undefined
+            ? `${c.atk}/${c.def}`
+            : "";
+        d.innerHTML =
+          `<div class="nm">${c.name}</div><div class="art"><img src="${IMG(c.id)}" alt="" onerror="this.remove()"></div><div class="tx"></div>` +
+          (opts.stats && stats ? `<div class="st">${stats}</div>` : "") +
+          (opts.chain ? `<div class="badge">${opts.chain}</div>` : "");
+        return d;
+      }
+
+      function zone(col, row, label, content, cls = "") {
+        const z = document.createElement("div");
+        z.className = "zone " + cls;
+        z.style.gridColumn = col;
+        z.style.gridRow = row;
+        z.innerHTML = `<span class="lbl">${label}</span>`;
+        if (content) z.appendChild(content);
+        return z;
+      }
+
+      function pile(label, count, top) {
+        const w = document.createElement("div");
+        w.className = "pile";
+        if (!count) {
+          w.innerHTML = `<span class="count" style="position:static">${label} 0</span>`;
+          return w;
+        }
+        w.appendChild(top ? cardEl(top) : cardEl(null, { down: true }));
+        w.insertAdjacentHTML(
+          "beforeend",
+          `<span class="count">${label} ${count}</span>`,
+        );
+        return w;
+      }
+
+      function buildPlane() {
+        const p = document.getElementById("plane");
+        p.innerHTML = "";
+        // opponent (rows 1-2, mirrored)
+        p.append(
+          zone(1, 1, "Deck", pile("Deck", 31)),
+          zone(7, 1, "Extra", pile("Extra", 9)),
+        );
+        p.append(
+          zone(1, 2, "GY", pile("GY", 4, "ashE")),
+          zone(7, 2, "Field", null),
+        );
+        for (let i = 0; i < 5; i++) {
+          const st =
+            i === 1
+              ? cardEl(null, { down: true })
+              : i === 3
+                ? cardEl("pot", { chain: 1 })
+                : null;
+          p.append(zone(2 + i, 1, "S/T", st));
+          p.append(
+            zone(
+              2 + i,
+              2,
+              "Monster",
+              i === 2 ? cardEl("baronne", { stats: true }) : null,
+            ),
+          );
+        }
+        // extra monster zones
+        p.append(
+          zone(3, 3, "Extra M", cardEl("apollousa", { stats: true }), "emz"),
+        );
+        p.append(zone(5, 3, "Extra M", null, "emz"));
+        for (const c of [1, 2, 4, 6, 7])
+          p.append(zone(c, 3, "", null, "empty-cell"));
+        // me (rows 4-5)
+        p.append(
+          zone(1, 4, "Field", null, "mine-row"),
+          zone(7, 4, "GY", pile("GY", 0, null), "mine-row"),
+        );
+        p.append(
+          zone(1, 5, "Extra", pile("Extra", 15), "mine-row"),
+          zone(7, 5, "Deck", pile("Deck", 35), "mine-row"),
+        );
+        for (let i = 0; i < 5; i++) {
+          p.append(zone(2 + i, 4, "Monster", null, "mine-row"));
+          p.append(zone(2 + i, 5, "S/T", null, "mine-row"));
+        }
+      }
+
+      function buildHands() {
+        const opp = document.getElementById("oppHand");
+        opp.innerHTML = "";
+        for (let i = 0; i < 2; i++)
+          opp.appendChild(cardEl(null, { down: true }));
+        const me = document.getElementById("myHand");
+        me.innerHTML = "";
+        const keys = ["ash", "maxx", "veiler", "called", "imperm"];
+        keys.forEach((k, i) => {
+          const el = cardEl(k);
+          const mid = (keys.length - 1) / 2;
+          el.style.transform = `rotate(${(i - mid) * 4}deg) translateY(${Math.abs(i - mid) * 5}px)`;
+          if (C[k].can) el.classList.add("can");
+          me.appendChild(el);
+        });
+      }
+
+      function showDetail(key) {
+        const c = C[key];
+        const stats = c.link
+          ? `<span>ATK ${c.atk}</span><span>LINK-${c.link}</span>`
+          : c.atk !== undefined
+            ? `<span>ATK ${c.atk}</span><span>DEF ${c.def}</span>`
+            : "";
+        document.getElementById("detail").innerHTML = `
+    <div class="big k-${c.k}"><img src="${IMG(c.id)}" alt="" onerror="this.remove()"></div>
+    <p class="d-name">${c.name}</p>
+    <p class="d-type">${c.type}</p>
+    <div class="d-stats">${stats}</div>
+    <p class="d-text">${c.text}</p>
+    <p class="h holo-only">Card logs</p>
+    <p class="d-text holo-only" style="opacity:.6">Pot of Prosperity · Apollousa · Baronne de Fleur</p>`;
+      }
+
+      // hover anywhere → detail panel
+      document.addEventListener("mouseover", (e) => {
+        const card = e.target.closest(".card[data-key]");
+        if (card) showDetail(card.dataset.key);
+      });
+
+      // click a hand card → action menu
+      let menu;
+      document.getElementById("myHand").addEventListener("click", (e) => {
+        const card = e.target.closest(".card");
+        if (!card) return;
+        menu?.remove();
+        document
+          .querySelectorAll(".my-hand .sel")
+          .forEach((x) => x.classList.remove("sel"));
+        card.classList.add("sel");
+        const c = C[card.dataset.key];
+        const acts = c.can
+          ? ["Activate (chain 2)", "Show text"]
+          : c.k === "spell" || c.k === "trap"
+            ? ["Can't activate now", "Show text"]
+            : ["Show text"];
+        menu = document.createElement("div");
+        menu.className = "menu";
+        menu.innerHTML = acts
+          .map(
+            (a) =>
+              `<button ${a.startsWith("Can't") ? "disabled style='opacity:.45'" : ""}>${a}</button>`,
+          )
+          .join("");
+        const r = card.getBoundingClientRect(),
+          t = document.querySelector(".table").getBoundingClientRect();
+        menu.style.left = `${r.left - t.left + r.width / 2 - 65}px`;
+        menu.style.top = `${r.top - t.top - 40 - acts.length * 34}px`;
+        document.querySelector(".table").appendChild(menu);
+        e.stopPropagation();
+      });
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".menu")) {
+          menu?.remove();
+          document
+            .querySelectorAll(".my-hand .sel")
+            .forEach((x) => x.classList.remove("sel"));
+        }
+      });
+
+      document.getElementById("chainBtn").onclick = (e) => {
+        e.stopPropagation();
+        document.querySelector('.my-hand [data-key="ash"]').click();
+      };
+      document.getElementById("passBtn").onclick = () =>
+        (document.getElementById("prompt").style.display = "none");
+
+      // demo buttons in the shared top bar
+      document.getElementById("topbar-extra").innerHTML =
+        '<button class="demo" id="openPick">Show card-pick prompt</button><button class="demo" id="openEnd">Show duel end</button>';
+      document.getElementById("openEnd").onclick = () =>
+        document.getElementById("end").classList.add("open");
+
+      // card-pick modal
+      const pickBg = document.getElementById("pickBg");
+      document.getElementById("openPick").onclick = () => {
+        const row = document.getElementById("pickRow");
+        row.innerHTML = "";
+        for (const k of ["bewd", "dmg", "called", "veiler", "maxx", "imperm"]) {
+          const el = cardEl(k, { stats: true });
+          el.onclick = () => {
+            row
+              .querySelectorAll(".sel")
+              .forEach((x) => x.classList.remove("sel"));
+            el.classList.add("sel");
+          };
+          row.appendChild(el);
+        }
+        pickBg.classList.add("open");
+      };
+      document.getElementById("pickCancel").onclick = document.getElementById(
+        "pickOk",
+      ).onclick = () => pickBg.classList.remove("open");
+
+      buildPlane();
+      buildHands();
+      showDetail("pot");
+      document.getElementById("end").onclick = (e) => {
+        if (e.target.closest("button"))
+          e.currentTarget.classList.remove("open");
+      };
+    </script>
+  </body>
+</html>
